@@ -1,0 +1,102 @@
+name: Android CI/CD Pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '**.gitignore'
+
+env:
+  ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🛠 Make gradlew Executable
+        run: chmod +x ./gradlew
+
+      - name: ⚙️ Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: 📱 Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 'latest'
+
+      - name: 📜 Accept Licenses
+        run: yes | sdkmanager --licenses
+
+      - name: 🧹 Clean Project
+        run: ./gradlew clean --no-daemon
+
+      - name: 🔨 Build APK (Errors Only)
+        run: |
+          echo "🚀 Building APK with error-focused logging..."
+          ./gradlew assembleDebug --no-daemon --quiet --stacktrace 2>&1 | \
+          tee build.log | \
+          grep -v -E '^(> Task|BUILD SUCCESSFUL|> Configure|Starting a Gradle Daemon|Download)' | \
+          grep -E -i '(error|exception|failed|unresolved|duplicate|missing|fatal|e: .*.kt)' || true
+        continue-on-error: true
+
+      - name: 🔍 Extract and Show Critical Errors
+        if: always()
+        run: |
+          echo "📋 CRITICAL BUILD ERRORS:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+          # Extract Kotlin compilation errors
+          grep -E 'e: .*\.kt:[0-9]+:[0-9]+:' build.log | head -n 15 >> $GITHUB_STEP_SUMMARY || true
+          
+          # Extract other critical errors
+          grep -E -i '(FAILED|Exception|Error|unresolved|duplicate class|missing)' build.log | \
+          grep -v -E '(Download|> Task)' | head -n 10 >> $GITHUB_STEP_SUMMARY || true
+          
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+          # Console output for immediate visibility
+          echo "🚨 ERRORS FOUND:"
+          grep -E -i '(error|failed|exception|unresolved|duplicate|e: .*\.kt)' build.log | head -n 20 || echo "No errors detected"
+
+      - name: 📦 Check APK Build Status
+        if: always()
+        run: |
+          if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
+            echo "✅ APK built successfully!"
+            echo "### ✅ APK Built Successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ APK build failed"
+            echo "### ❌ APK Build Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 📤 Upload APK Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: ❌ Final Error Check
+        if: always()
+        run: |
+          if grep -q -i -E '(FAILED|error|exception|unresolved)' build.log; then
+            echo "💥 Build failed with errors - check the error summary above"
+            exit 1
+          else
+            echo "✅ Build completed successfully"
+          fi
