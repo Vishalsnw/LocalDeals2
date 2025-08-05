@@ -24,4 +24,3 @@
 
     <style name="Theme.DealsApp.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>
-</resource>
