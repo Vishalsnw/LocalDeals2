@@ -1,4 +1,5 @@
 run = "./gradlew assembleDebug"
+modules = ["java-graalvm22.3", "nix"]
 [nix]
 channel = "stable-25_05"
 
