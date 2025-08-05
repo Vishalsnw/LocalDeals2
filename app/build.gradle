@@ -1,13 +1,10 @@
-
 plugins {
     id 'com.android.application'
     id 'com.google.gms.google-services'
 }
-android {
-    namespace 'com.deals.app' // Set your namespace here
-    compileSdk 33
 
 android {
+    namespace 'com.deals.app' // Set your namespace here
     compileSdk 35
 
     defaultConfig {
@@ -26,10 +23,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     buildFeatures {
         viewBinding true
     }
