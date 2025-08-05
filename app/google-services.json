@@ -1,37 +1,27 @@
 
 {
   "project_info": {
-    "project_number": "YOUR_PROJECT_NUMBER",
-    "project_id": "your-deals-app",
-    "storage_bucket": "your-deals-app.appspot.com"
+    "project_number": "857074475182",
+    "project_id": "localdeals2-17d49",
+    "storage_bucket": "localdeals2-17d49.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "YOUR_APP_ID",
+        "mobilesdk_app_id": "1:857074475182:android:f21c2ddbf32a0a4137cd3f",
         "android_client_info": {
           "package_name": "com.deals.app"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "YOUR_CLIENT_ID",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "YOUR_API_KEY"
+          "current_key": "AIzaSyCFZcS4f4gMe0Wi2KtPCGOO1jbrBbcAYKE"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "YOUR_CLIENT_ID",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
