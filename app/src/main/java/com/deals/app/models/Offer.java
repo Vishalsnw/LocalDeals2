@@ -83,6 +83,7 @@ public class Offer {
     public void setBusinessId(String businessId) {
         this.businessId = businessId;
     }
+}
 
     public String getBusinessName() {
         return businessName;

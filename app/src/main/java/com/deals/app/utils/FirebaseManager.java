@@ -83,13 +83,6 @@ public class FirebaseManager {
         crashlytics.log(message);
     }
 }
-package com.deals.app.utils;
-
-import android.util.Log;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 public class FirebaseManager {
     private static final String TAG = "FirebaseManager";

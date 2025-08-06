@@ -1,4 +1,3 @@
-
 package com.deals.app.models;
 
 public class Business {
@@ -19,7 +18,7 @@ public class Business {
         // Default constructor required for Firestore
     }
 
-    public Business(String ownerId, String businessName, String description, String category, 
+    public Business(String ownerId, String businessName, String description, String category,
                    String address, String city, String phoneNumber, String email, String website) {
         this.ownerId = ownerId;
         this.businessName = businessName;
@@ -151,8 +150,8 @@ public class Business {
         // Default constructor required for calls to DataSnapshot.getValue(Business.class)
     }
 
-    public Business(String businessName, String ownerId, String ownerEmail, 
-                   String description, String category, String address, String city, 
+    public Business(String businessName, String ownerId, String ownerEmail,
+                   String description, String category, String address, String city,
                    String phoneNumber, String website) {
         this.businessName = businessName;
         this.ownerId = ownerId;
@@ -254,13 +253,5 @@ public class Business {
 
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public boolean isVerified() {
-        return isVerified;
-    }
-
-    public void setVerified(boolean verified) {
-        isVerified = verified;
     }
 }
