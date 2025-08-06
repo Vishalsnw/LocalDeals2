@@ -3,6 +3,7 @@ package com.deals.app.utils;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -12,13 +13,16 @@ public class FirebaseManager {
     private FirebaseAuth auth;
     private FirebaseFirestore firestore;
     private FirebaseStorage storage;
+    private FirebaseCrashlytics crashlytics;
 
     private FirebaseManager() {
         try {
             auth = FirebaseAuth.getInstance();
             firestore = FirebaseFirestore.getInstance();
             storage = FirebaseStorage.getInstance();
+            crashlytics = FirebaseCrashlytics.getInstance();
         } catch (Exception e) {
+            crashlytics.recordException(e);
             throw new RuntimeException("Firebase initialization failed: " + e.getMessage(), e);
         }
     }
@@ -57,5 +61,25 @@ public class FirebaseManager {
     public String getCurrentUserId() {
         FirebaseUser user = getCurrentUser();
         return user != null ? user.getUid() : null;
+    }
+
+    public FirebaseCrashlytics getCrashlytics() {
+        return crashlytics;
+    }
+
+    public void logException(Exception e) {
+        crashlytics.recordException(e);
+    }
+
+    public void setUserId(String userId) {
+        crashlytics.setUserId(userId);
+    }
+
+    public void setCustomKey(String key, String value) {
+        crashlytics.setCustomKey(key, value);
+    }
+
+    public void log(String message) {
+        crashlytics.log(message);
     }
 }

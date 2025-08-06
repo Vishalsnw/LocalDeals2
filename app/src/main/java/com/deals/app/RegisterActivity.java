@@ -1,4 +1,3 @@
-
 package com.deals.app;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +17,7 @@ import android.widget.Toast;
 
 import com.deals.app.models.User;
 import com.deals.app.utils.FirebaseManager;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText nameEditText, emailEditText, passwordEditText;
@@ -29,7 +29,7 @@ public class RegisterActivity extends AppCompatActivity {
     private FirebaseManager firebaseManager;
 
     private String[] indianCities = {
-        "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", 
+        "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata",
         "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Kanpur", "Nagpur",
         "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna", "Vadodara",
         "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad", "Meerut"
@@ -41,7 +41,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         firebaseManager = FirebaseManager.getInstance();
-        
+
         initViews();
         setupSpinner();
         setupClickListeners();
@@ -59,7 +59,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void setupSpinner() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
             android.R.layout.simple_spinner_item, indianCities);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         citySpinner.setAdapter(adapter);
@@ -78,13 +78,13 @@ public class RegisterActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
         String city = citySpinner.getSelectedItem().toString();
-        
+
         int selectedRoleId = roleRadioGroup.getCheckedRadioButtonId();
         if (selectedRoleId == -1) {
             Toast.makeText(this, "Please select a role", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         RadioButton selectedRoleButton = findViewById(selectedRoleId);
         String role = selectedRoleButton.getText().toString().toLowerCase().replace(" ", "_");
 
@@ -102,7 +102,7 @@ public class RegisterActivity extends AppCompatActivity {
                             } else {
                                 progressBar.setVisibility(View.GONE);
                                 registerButton.setEnabled(true);
-                                Toast.makeText(RegisterActivity.this, 
+                                Toast.makeText(RegisterActivity.this,
                                     "Failed to get user ID", Toast.LENGTH_SHORT).show();
                             }
                         } else {
@@ -146,27 +146,35 @@ public class RegisterActivity extends AppCompatActivity {
         firebaseManager.getFirestore().collection("users").document(user.getUid())
                 .set(user)
                 .addOnCompleteListener(task -> {
-                    progressBar.setVisibility(View.GONE);
-                    registerButton.setEnabled(true);
-
                     if (task.isSuccessful()) {
+                        // Set user ID for Crashlytics
+                        firebaseManager.setUserId(firebaseManager.getCurrentUserId());
+                        firebaseManager.setCustomKey("user_role", user.getRole());
+                        firebaseManager.setCustomKey("user_city", user.getCity());
+                        firebaseManager.log("User registered successfully with role: " + user.getRole());
+
+                        progressBar.setVisibility(View.GONE);
+                        registerButton.setEnabled(true);
                         Toast.makeText(RegisterActivity.this, "Registration successful!", Toast.LENGTH_SHORT).show();
-                        
+
+                        // Redirect based on role
                         Intent intent;
                         if ("business_owner".equals(user.getRole())) {
                             intent = new Intent(RegisterActivity.this, BusinessDashboardActivity.class);
                         } else {
                             intent = new Intent(RegisterActivity.this, MainActivity.class);
                         }
-                        
                         startActivity(intent);
                         finish();
                     } else {
-                        String errorMsg = "Error saving user data";
-                        if (task.getException() != null) {
-                            errorMsg = "Error saving user data: " + task.getException().getMessage();
+                        progressBar.setVisibility(View.GONE);
+                        registerButton.setEnabled(true);
+                        Exception exception = task.getException();
+                        if (exception != null) {
+                            firebaseManager.logException(exception);
+                            firebaseManager.log("Registration failed for email: " + user.getEmail());
                         }
-                        Toast.makeText(RegisterActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                        Toast.makeText(RegisterActivity.this, "Error saving user data: " + (exception != null ? exception.getMessage() : "Unknown error"), Toast.LENGTH_LONG).show();
                     }
                 });
     }

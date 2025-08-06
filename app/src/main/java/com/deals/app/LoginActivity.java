@@ -1,4 +1,3 @@
-
 package com.deals.app;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,7 +28,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         firebaseManager = FirebaseManager.getInstance();
-        
+
         initViews();
         setupClickListeners();
     }
@@ -69,21 +68,27 @@ public class LoginActivity extends AppCompatActivity {
         firebaseManager.getAuth().signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     progressBar.setVisibility(View.GONE);
-                    loginButton.setEnabled(true);
 
-                    if (task.isSuccessful()) {
-                        checkUserRoleAndRedirect();
-                    } else {
-                        Toast.makeText(LoginActivity.this, 
-                            "Login failed: " + task.getException().getMessage(), 
-                            Toast.LENGTH_SHORT).show();
+                    // Set user ID for Crashlytics
+                    firebaseManager.setUserId(firebaseManager.getCurrentUserId());
+                    firebaseManager.log("User logged in successfully");
+
+                    Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                    checkUserRoleAndRedirect();
+                } else {
+                    progressBar.setVisibility(View.GONE);
+                    Exception exception = task.getException();
+                    if (exception != null) {
+                        firebaseManager.logException(exception);
+                        firebaseManager.log("Login failed for email: " + email);
                     }
+                    Toast.makeText(LoginActivity.this, "Login failed: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
     private void checkUserRoleAndRedirect() {
         String userId = firebaseManager.getCurrentUserId();
-        
+
         firebaseManager.getFirestore().collection("users").document(userId)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -92,13 +97,13 @@ public class LoginActivity extends AppCompatActivity {
                         if (document.exists()) {
                             String role = document.getString("role");
                             Intent intent;
-                            
+
                             if ("business_owner".equals(role)) {
                                 intent = new Intent(LoginActivity.this, BusinessDashboardActivity.class);
                             } else {
                                 intent = new Intent(LoginActivity.this, MainActivity.class);
                             }
-                            
+
                             startActivity(intent);
                             finish();
                         }

@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.ArrayAdapter;
@@ -16,6 +18,7 @@ import android.widget.AdapterView;
 import com.deals.app.adapters.OfferAdapter;
 import com.deals.app.models.Offer;
 import com.deals.app.utils.FirebaseManager;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -44,6 +47,24 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
+
+
+    private void addTestCrashButton() {
+        // Only add test crash button in debug builds for testing
+        if (BuildConfig.DEBUG) {
+            Button crashButton = new Button(this);
+            crashButton.setText("Test Crash");
+            crashButton.setOnClickListener(v -> {
+                throw new RuntimeException("Test Crash"); // Force a crash
+            });
+            
+            addContentView(crashButton, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ));
+        }
+    }
+
         }
 
         initViews();
