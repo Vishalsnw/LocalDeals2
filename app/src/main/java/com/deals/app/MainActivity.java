@@ -1,4 +1,3 @@
-
 package com.deals.app;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private SearchView searchView;
     private Spinner categorySpinner, citySpinner;
     private FirebaseManager firebaseManager;
-    
+
     private String[] categories = {"All", "Food", "Shopping", "Entertainment", "Health", "Beauty", "Travel", "Electronics"};
     private String[] cities = {"All", "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune"};
 
@@ -42,12 +41,19 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         firebaseManager = FirebaseManager.getInstance();
-        
+
         if (!firebaseManager.isUserLoggedIn()) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
+        }
 
+        initViews();
+        setupRecyclerView();
+        setupSpinners();
+        loadOffers();
+        addTestCrashButton();
+    }
 
     private void addTestCrashButton() {
         // Only add test crash button in debug builds for testing
@@ -57,20 +63,12 @@ public class MainActivity extends AppCompatActivity {
             crashButton.setOnClickListener(v -> {
                 throw new RuntimeException("Test Crash"); // Force a crash
             });
-            
+
             addContentView(crashButton, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ));
         }
-    }
-
-        }
-
-        initViews();
-        setupRecyclerView();
-        setupSpinners();
-        loadOffers();
     }
 
     private void initViews() {
@@ -88,12 +86,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupSpinners() {
-        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, 
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this,
             android.R.layout.simple_spinner_item, categories);
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         categorySpinner.setAdapter(categoryAdapter);
 
-        ArrayAdapter<String> cityAdapter = new ArrayAdapter<>(this, 
+        ArrayAdapter<String> cityAdapter = new ArrayAdapter<>(this,
             android.R.layout.simple_spinner_item, cities);
         cityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         citySpinner.setAdapter(cityAdapter);
@@ -103,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
                 filterOffers();
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
@@ -112,43 +111,29 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
                 filterOffers();
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                filterOffers();
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                filterOffers();
-                return true;
-            }
         });
     }
 
     private void loadOffers() {
-        Query query = firebaseManager.getFirestore().collection("offers")
-                .whereEqualTo("isActive", true)
-                .whereGreaterThan("expirationDate", System.currentTimeMillis())
-                .orderBy("expirationDate")
-                .orderBy("createdAt", Query.Direction.DESCENDING);
-
-        query.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                offerList.clear();
-                for (QueryDocumentSnapshot document : task.getResult()) {
-                    Offer offer = document.toObject(Offer.class);
-                    offer.setOfferId(document.getId());
-                    offerList.add(offer);
-                }
-                offerAdapter.notifyDataSetChanged();
-            }
-        });
+        firebaseManager.getFirestore().collection("offers")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        offerList.clear();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Offer offer = document.toObject(Offer.class);
+                            offer.setOfferId(document.getId());
+                            offerList.add(offer);
+                        }
+                        offerAdapter.notifyDataSetChanged();
+                    } else {
+                        firebaseManager.logException(task.getException());
+                    }
+                });
     }
 
     private void filterOffers() {
@@ -177,8 +162,8 @@ public class MainActivity extends AppCompatActivity {
                      for (QueryDocumentSnapshot document : task.getResult()) {
                          Offer offer = document.toObject(Offer.class);
                          offer.setOfferId(document.getId());
-                         
-                         if (searchQuery.isEmpty() || 
+
+                         if (searchQuery.isEmpty() ||
                              offer.getTitle().toLowerCase().contains(searchQuery) ||
                              offer.getDescription().toLowerCase().contains(searchQuery) ||
                              offer.getBusinessName().toLowerCase().contains(searchQuery)) {
@@ -199,14 +184,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        
+
         if (id == R.id.action_logout) {
             firebaseManager.getAuth().signOut();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return true;
         }
-        
+
         return super.onOptionsItemSelected(item);
     }
 }
