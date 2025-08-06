@@ -21,7 +21,6 @@ import com.deals.app.utils.FirebaseManager;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-// Import for BuildConfig
 import com.deals.app.BuildConfig;
 
 import java.util.ArrayList;

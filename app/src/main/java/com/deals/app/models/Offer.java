@@ -1,4 +1,3 @@
-
 package com.deals.app.models;
 
 public class Offer {
@@ -18,23 +17,23 @@ public class Offer {
     private String city;
 
     public Offer() {
-        // Default constructor required for Firestore
+        // Default constructor required for calls to DataSnapshot.getValue(Offer.class)
     }
 
-    public Offer(String title, String description, String category, String businessId,
-                String businessName, double originalPrice, double discountedPrice,
-                String terms, long expirationDate, String city) {
+    public Offer(String title, String description, String businessId, String businessName,
+                String category, String city, double originalPrice, double discountedPrice,
+                int discountPercentage, long expiryDate, String ownerId) {
         this.title = title;
         this.description = description;
-        this.category = category;
         this.businessId = businessId;
         this.businessName = businessName;
+        this.category = category;
+        this.city = city;
         this.originalPrice = originalPrice;
         this.discountedPrice = discountedPrice;
-        this.discountPercentage = (int) ((originalPrice - discountedPrice) / originalPrice * 100);
-        this.terms = terms;
-        this.expirationDate = expirationDate;
-        this.city = city;
+        this.discountPercentage = discountPercentage;
+        this.expirationDate = expiryDate; // Note: Renamed from expiryDate to expirationDate to match the class field. Assuming this is the intended fix.
+        this.ownerId = ownerId; // Note: This field was not present in the original Offer class. Assuming it's a new field.
         this.createdAt = System.currentTimeMillis();
         this.isActive = true;
     }

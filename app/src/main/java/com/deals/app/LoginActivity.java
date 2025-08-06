@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.deals.app.utils.FirebaseManager;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.deals.app.models.User;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText emailEditText, passwordEditText;

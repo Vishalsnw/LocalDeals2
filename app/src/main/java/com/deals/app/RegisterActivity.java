@@ -19,6 +19,9 @@ import com.deals.app.models.User;
 import com.deals.app.utils.FirebaseManager;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class RegisterActivity extends AppCompatActivity {
     private EditText nameEditText, emailEditText, passwordEditText;
     private Spinner citySpinner;
