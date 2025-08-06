@@ -2,80 +2,71 @@
 package com.deals.app.models;
 
 public class User {
-    private String uid;
+    private String userId;
     private String email;
     private String name;
+    private String role; // "user" or "business"
     private String city;
-    private String role; // "customer" or "business_owner"
     private long createdAt;
 
     public User() {
-        // Required empty constructor for Firestore
+        // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User(String uid, String email, String name, String city, String role) {
-        this.uid = uid;
+    public User(String email, String name, String role, String city) {
         this.email = email;
         this.name = name;
-        this.city = city;
         this.role = role;
+        this.city = city;
         this.createdAt = System.currentTimeMillis();
     }
 
     // Getters and setters
-    public String getUid() { return uid; }
-    public void setUid(String uid) { this.uid = uid; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
-
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-
-    public long getCreatedAt() { return createdAt; }
-    public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
-}
-package com.deals.app.models;
-
-public class User {
-    private String userId;
-    private String name;
-    private String email;
-    private String city;
-    private String role; // "consumer" or "business"
-    private long createdAt;
-
-    public User() {
-        // Required empty constructor for Firestore
+    public String getUserId() {
+        return userId;
     }
 
-    public User(String name, String email, String city, String role) {
-        this.name = name;
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
         this.email = email;
-        this.city = city;
-        this.role = role;
-        this.createdAt = System.currentTimeMillis();
     }
 
-    // Getters
-    public String getUserId() { return userId; }
-    public String getName() { return name; }
-    public String getEmail() { return email; }
-    public String getCity() { return city; }
-    public String getRole() { return role; }
-    public long getCreatedAt() { return createdAt; }
+    public String getName() {
+        return name;
+    }
 
-    // Setters
-    public void setUserId(String userId) { this.userId = userId; }
-    public void setName(String name) { this.name = name; }
-    public void setEmail(String email) { this.email = email; }
-    public void setCity(String city) { this.city = city; }
-    public void setRole(String role) { this.role = role; }
-    public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
+    }
 }

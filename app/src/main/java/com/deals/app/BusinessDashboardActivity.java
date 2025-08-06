@@ -19,7 +19,9 @@ import android.widget.Toast;
 import com.deals.app.adapters.BusinessOfferAdapter;
 import com.deals.app.models.Business;
 import com.deals.app.models.Offer;
+import com.deals.app.models.Business;
 import com.deals.app.utils.FirebaseManager;
+import com.deals.app.adapters.BusinessOfferAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 

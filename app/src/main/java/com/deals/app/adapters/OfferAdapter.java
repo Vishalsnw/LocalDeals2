@@ -1,4 +1,3 @@
-
 package com.deals.app.adapters;
 
 import android.content.Context;
@@ -82,66 +81,6 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
             discountPercentageTextView = itemView.findViewById(R.id.discountPercentageTextView);
             expirationDateTextView = itemView.findViewById(R.id.expirationDateTextView);
             offerImageView = itemView.findViewById(R.id.offerImageView);
-        }
-    }
-}
-package com.deals.app.adapters;
-
-import android.content.Context;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-import com.deals.app.R;
-import com.deals.app.models.Offer;
-import java.util.List;
-
-public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHolder> {
-    private Context context;
-    private List<Offer> offerList;
-
-    public OfferAdapter(Context context, List<Offer> offerList) {
-        this.context = context;
-        this.offerList = offerList;
-    }
-
-    @NonNull
-    @Override
-    public OfferViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_offer, parent, false);
-        return new OfferViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull OfferViewHolder holder, int position) {
-        Offer offer = offerList.get(position);
-        holder.titleTextView.setText(offer.getTitle());
-        holder.descriptionTextView.setText(offer.getDescription());
-        holder.categoryTextView.setText(offer.getCategory());
-        holder.cityTextView.setText(offer.getCity());
-    }
-
-    @Override
-    public int getItemCount() {
-        return offerList != null ? offerList.size() : 0;
-    }
-
-    public void updateOffers(List<Offer> newOffers) {
-        this.offerList = newOffers;
-        notifyDataSetChanged();
-    }
-
-    static class OfferViewHolder extends RecyclerView.ViewHolder {
-        TextView titleTextView, descriptionTextView, categoryTextView, cityTextView;
-
-        public OfferViewHolder(@NonNull View itemView) {
-            super(itemView);
-            titleTextView = itemView.findViewById(R.id.titleTextView);
-            descriptionTextView = itemView.findViewById(R.id.descriptionTextView);
-            categoryTextView = itemView.findViewById(R.id.categoryTextView);
-            cityTextView = itemView.findViewById(R.id.cityTextView);
         }
     }
 }
