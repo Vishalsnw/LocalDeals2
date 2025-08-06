@@ -80,6 +80,11 @@ public class RegisterActivity extends AppCompatActivity {
         String city = citySpinner.getSelectedItem().toString();
         
         int selectedRoleId = roleRadioGroup.getCheckedRadioButtonId();
+        if (selectedRoleId == -1) {
+            Toast.makeText(this, "Please select a role", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         RadioButton selectedRoleButton = findViewById(selectedRoleId);
         String role = selectedRoleButton.getText().toString().toLowerCase().replace(" ", "_");
 
@@ -123,11 +128,6 @@ public class RegisterActivity extends AppCompatActivity {
 
         if (password.length() < 6) {
             passwordEditText.setError("Password must be at least 6 characters");
-            return false;
-        }
-
-        if (roleRadioGroup.getCheckedRadioButtonId() == -1) {
-            Toast.makeText(this, "Please select a role", Toast.LENGTH_SHORT).show();
             return false;
         }
 
