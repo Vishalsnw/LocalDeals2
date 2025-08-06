@@ -1,4 +1,3 @@
-
 package com.deals.app;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -60,7 +60,7 @@ public class BusinessDashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_business_dashboard);
 
         firebaseManager = FirebaseManager.getInstance();
-        
+
         if (!firebaseManager.isUserLoggedIn()) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
@@ -76,7 +76,7 @@ public class BusinessDashboardActivity extends AppCompatActivity {
     private void initViews() {
         businessOffersRecyclerView = findViewById(R.id.businessOffersRecyclerView);
         addOfferFab = findViewById(R.id.addOfferFab);
-        
+
         addOfferFab.setOnClickListener(v -> showAddOfferDialog());
     }
 
@@ -89,7 +89,7 @@ public class BusinessDashboardActivity extends AppCompatActivity {
 
     private void loadBusinessInfo() {
         String userId = firebaseManager.getCurrentUserId();
-        
+
         firebaseManager.getFirestore().collection("businesses")
                 .whereEqualTo("ownerId", userId)
                 .get()
@@ -109,7 +109,7 @@ public class BusinessDashboardActivity extends AppCompatActivity {
 
     private void loadBusinessOffers() {
         String userId = firebaseManager.getCurrentUserId();
-        
+
         firebaseManager.getFirestore().collection("offers")
                 .whereEqualTo("businessId", userId)
                 .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
@@ -183,7 +183,7 @@ public class BusinessDashboardActivity extends AppCompatActivity {
             String discountedPriceStr = discountedPriceEditText.getText().toString().trim();
             String terms = termsEditText.getText().toString().trim();
 
-            if (title.isEmpty() || description.isEmpty() || originalPriceStr.isEmpty() || 
+            if (title.isEmpty() || description.isEmpty() || originalPriceStr.isEmpty() ||
                 discountedPriceStr.isEmpty() || selectedDate[0] == 0) {
                 Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show();
                 return;

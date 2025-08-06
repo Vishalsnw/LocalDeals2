@@ -3,7 +3,7 @@ package com.deals.app.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Offer {
+public class Offer implements Parcelable {
     private String offerId;
     private String title;
     private String description;
@@ -18,14 +18,16 @@ public class Offer {
     private long createdAt;
     private boolean isActive;
     private String city;
+    private String ownerId; // Added based on the constructor
+    private long dateCreated; // Added based on writeToParcel
 
     public Offer() {
         // Default constructor required for calls to DataSnapshot.getValue(Offer.class)
     }
 
     public Offer(String title, String description, String businessId, String businessName,
-                String category, String city, double originalPrice, double discountedPrice,
-                int discountPercentage, long expiryDate, String ownerId) {
+                 String category, String city, double originalPrice, double discountedPrice,
+                 int discountPercentage, long expiryDate, String ownerId) {
         this.title = title;
         this.description = description;
         this.businessId = businessId;
@@ -39,6 +41,25 @@ public class Offer {
         this.ownerId = ownerId; // Note: This field was not present in the original Offer class. Assuming it's a new field.
         this.createdAt = System.currentTimeMillis();
         this.isActive = true;
+        this.dateCreated = System.currentTimeMillis(); // Initialize dateCreated
+    }
+
+    // Constructor for Parcelable
+    protected Offer(Parcel in) {
+        offerId = in.readString();
+        title = in.readString();
+        description = in.readString();
+        businessName = in.readString();
+        businessId = in.readString();
+        category = in.readString();
+        city = in.readString();
+        originalPrice = in.readDouble();
+        discountedPrice = in.readDouble();
+        discountPercentage = in.readInt();
+        expirationDate = in.readLong();
+        isActive = in.readByte() != 0;
+        dateCreated = in.readLong();
+        // Note: ownerId is not read here, which might be an issue if it's needed.
     }
 
     public String getOfferId() {
@@ -152,4 +173,54 @@ public class Offer {
     public void setCity(String city) {
         this.city = city;
     }
+
+    public String getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public long getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(long dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(offerId);
+        dest.writeString(title);
+        dest.writeString(description);
+        dest.writeString(businessName);
+        dest.writeString(businessId);
+        dest.writeString(category);
+        dest.writeString(city);
+        dest.writeDouble(originalPrice);
+        dest.writeDouble(discountedPrice);
+        dest.writeInt(discountPercentage);
+        dest.writeLong(expirationDate);
+        dest.writeByte((byte) (isActive ? 1 : 0));
+        dest.writeLong(dateCreated);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Parcelable.Creator<Offer> CREATOR = new Parcelable.Creator<Offer>() {
+        @Override
+        public Offer createFromParcel(Parcel in) {
+            return new Offer(in);
+        }
+
+        @Override
+        public Offer[] newArray(int size) {
+            return new Offer[size];
+        }
+    };
 }
