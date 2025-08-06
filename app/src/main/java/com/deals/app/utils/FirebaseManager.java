@@ -14,9 +14,13 @@ public class FirebaseManager {
     private FirebaseStorage storage;
 
     private FirebaseManager() {
-        auth = FirebaseAuth.getInstance();
-        firestore = FirebaseFirestore.getInstance();
-        storage = FirebaseStorage.getInstance();
+        try {
+            auth = FirebaseAuth.getInstance();
+            firestore = FirebaseFirestore.getInstance();
+            storage = FirebaseStorage.getInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Firebase initialization failed: " + e.getMessage(), e);
+        }
     }
 
     public static synchronized FirebaseManager getInstance() {

@@ -96,15 +96,23 @@ public class RegisterActivity extends AppCompatActivity {
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             String userId = firebaseManager.getCurrentUserId();
-                            User user = new User(userId, email, name, city, role);
-                            
-                            saveUserToFirestore(user);
+                            if (userId != null) {
+                                User user = new User(userId, email, name, city, role);
+                                saveUserToFirestore(user);
+                            } else {
+                                progressBar.setVisibility(View.GONE);
+                                registerButton.setEnabled(true);
+                                Toast.makeText(RegisterActivity.this, 
+                                    "Failed to get user ID", Toast.LENGTH_SHORT).show();
+                            }
                         } else {
                             progressBar.setVisibility(View.GONE);
                             registerButton.setEnabled(true);
-                            Toast.makeText(RegisterActivity.this, 
-                                "Registration failed: " + task.getException().getMessage(), 
-                                Toast.LENGTH_SHORT).show();
+                            String errorMsg = "Registration failed";
+                            if (task.getException() != null) {
+                                errorMsg = "Registration failed: " + task.getException().getMessage();
+                            }
+                            Toast.makeText(RegisterActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                         }
                     });
         }
@@ -154,7 +162,11 @@ public class RegisterActivity extends AppCompatActivity {
                         startActivity(intent);
                         finish();
                     } else {
-                        Toast.makeText(RegisterActivity.this, "Error saving user data", Toast.LENGTH_SHORT).show();
+                        String errorMsg = "Error saving user data";
+                        if (task.getException() != null) {
+                            errorMsg = "Error saving user data: " + task.getException().getMessage();
+                        }
+                        Toast.makeText(RegisterActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                     }
                 });
     }
