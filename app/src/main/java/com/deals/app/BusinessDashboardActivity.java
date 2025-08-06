@@ -4,9 +4,11 @@ package com.deals.app;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,10 +21,9 @@ import android.widget.Toast;
 import com.deals.app.adapters.BusinessOfferAdapter;
 import com.deals.app.models.Business;
 import com.deals.app.models.Offer;
-import com.deals.app.models.Business;
 import com.deals.app.utils.FirebaseManager;
-import com.deals.app.adapters.BusinessOfferAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -36,6 +37,8 @@ public class BusinessDashboardActivity extends AppCompatActivity {
     private FloatingActionButton addOfferFab;
     private FirebaseManager firebaseManager;
     private Business currentBusiness;
+
+    private String[] categories = {"Food", "Shopping", "Entertainment", "Health", "Beauty", "Travel", "Electronics"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,8 +114,6 @@ public class BusinessDashboardActivity extends AppCompatActivity {
     }
 
     private void showCreateBusinessDialog() {
-        // Implementation for creating business profile dialog
-        // This would show a dialog with business details form
         Toast.makeText(this, "Please create your business profile first", Toast.LENGTH_LONG).show();
     }
 
@@ -122,31 +123,34 @@ public class BusinessDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        // Create and show offer creation dialog
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_offer, null);
-        
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_offer, null);
+
         EditText titleEditText = dialogView.findViewById(R.id.titleEditText);
         EditText descriptionEditText = dialogView.findViewById(R.id.descriptionEditText);
         Spinner categorySpinner = dialogView.findViewById(R.id.categorySpinner);
         EditText originalPriceEditText = dialogView.findViewById(R.id.originalPriceEditText);
         EditText discountedPriceEditText = dialogView.findViewById(R.id.discountedPriceEditText);
-        Button expirationDateButton = dialogView.findViewById(R.id.expirationDateButton);
-        
-        String[] categories = {"Food", "Shopping", "Entertainment", "Health", "Beauty", "Travel", "Electronics"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        categorySpinner.setAdapter(adapter);
+        EditText termsEditText = dialogView.findViewById(R.id.termsEditText);
+        Button selectDateButton = dialogView.findViewById(R.id.selectDateButton);
+        Button createOfferButton = dialogView.findViewById(R.id.createOfferButton);
+        Button cancelButton = dialogView.findViewById(R.id.cancelButton);
 
-        final long[] expirationDate = {0};
-        expirationDateButton.setOnClickListener(v -> {
+        // Setup category spinner
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        categorySpinner.setAdapter(categoryAdapter);
+
+        final long[] selectedDate = {0};
+
+        selectDateButton.setOnClickListener(v -> {
             Calendar calendar = Calendar.getInstance();
             DatePickerDialog datePickerDialog = new DatePickerDialog(this,
                     (view, year, month, dayOfMonth) -> {
-                        Calendar selectedDate = Calendar.getInstance();
-                        selectedDate.set(year, month, dayOfMonth);
-                        expirationDate[0] = selectedDate.getTimeInMillis();
-                        expirationDateButton.setText(String.format("%d/%d/%d", dayOfMonth, month + 1, year));
+                        Calendar selected = Calendar.getInstance();
+                        selected.set(year, month, dayOfMonth, 23, 59, 59);
+                        selectedDate[0] = selected.getTimeInMillis();
+                        selectDateButton.setText(String.format("%02d/%02d/%d", dayOfMonth, month + 1, year));
                     },
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
@@ -154,61 +158,47 @@ public class BusinessDashboardActivity extends AppCompatActivity {
             datePickerDialog.show();
         });
 
-        builder.setView(dialogView)
-                .setTitle("Add New Offer")
-                .setPositiveButton("Create", (dialog, which) -> {
-                    String title = titleEditText.getText().toString().trim();
-                    String description = descriptionEditText.getText().toString().trim();
-                    String category = categorySpinner.getSelectedItem().toString();
-                    String originalPriceStr = originalPriceEditText.getText().toString().trim();
-                    String discountedPriceStr = discountedPriceEditText.getText().toString().trim();
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
 
-                    if (validateOfferInput(title, description, originalPriceStr, discountedPriceStr, expirationDate[0])) {
-                        double originalPrice = Double.parseDouble(originalPriceStr);
-                        double discountedPrice = Double.parseDouble(discountedPriceStr);
-                        
-                        Offer offer = new Offer(
-                                currentBusiness.getOwnerId(),
-                                currentBusiness.getName(),
-                                title,
-                                description,
-                                category,
-                                currentBusiness.getCity(),
-                                originalPrice,
-                                discountedPrice,
-                                "", // imageUrl - can be added later
-                                expirationDate[0]
-                        );
+        createOfferButton.setOnClickListener(v -> {
+            String title = titleEditText.getText().toString().trim();
+            String description = descriptionEditText.getText().toString().trim();
+            String category = categorySpinner.getSelectedItem().toString();
+            String originalPriceStr = originalPriceEditText.getText().toString().trim();
+            String discountedPriceStr = discountedPriceEditText.getText().toString().trim();
+            String terms = termsEditText.getText().toString().trim();
 
-                        createOffer(offer);
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    private boolean validateOfferInput(String title, String description, String originalPrice, 
-                                     String discountedPrice, long expirationDate) {
-        if (title.isEmpty() || description.isEmpty() || originalPrice.isEmpty() || 
-            discountedPrice.isEmpty() || expirationDate == 0) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        try {
-            double original = Double.parseDouble(originalPrice);
-            double discounted = Double.parseDouble(discountedPrice);
-            
-            if (discounted >= original) {
-                Toast.makeText(this, "Discounted price must be less than original price", Toast.LENGTH_SHORT).show();
-                return false;
+            if (title.isEmpty() || description.isEmpty() || originalPriceStr.isEmpty() || 
+                discountedPriceStr.isEmpty() || selectedDate[0] == 0) {
+                Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show();
+                return;
             }
-        } catch (NumberFormatException e) {
-            Toast.makeText(this, "Please enter valid prices", Toast.LENGTH_SHORT).show();
-            return false;
-        }
 
-        return true;
+            double originalPrice = Double.parseDouble(originalPriceStr);
+            double discountedPrice = Double.parseDouble(discountedPriceStr);
+            int discountPercentage = (int) (((originalPrice - discountedPrice) / originalPrice) * 100);
+
+            Offer offer = new Offer(
+                    title,
+                    description,
+                    category,
+                    currentBusiness.getCity(),
+                    currentBusiness.getOwnerId(),
+                    currentBusiness.getBusinessName(),
+                    originalPrice,
+                    discountedPrice,
+                    discountPercentage,
+                    selectedDate[0],
+                    terms
+            );
+
+            createOffer(offer);
+            dialog.dismiss();
+        });
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     private void createOffer(Offer offer) {
@@ -233,54 +223,6 @@ public class BusinessDashboardActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error deleting offer: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        
-        if (id == R.id.action_logout) {
-            firebaseManager.getAuth().signOut();
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-            return true;
-        }
-        
-        return super.onOptionsItemSelected(item);
-    }
-}
-package com.deals.app;
-
-import androidx.appcompat.app.AppCompatActivity;
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.Toast;
-
-import com.deals.app.utils.FirebaseManager;
-
-public class BusinessDashboardActivity extends AppCompatActivity {
-    private FirebaseManager firebaseManager;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_business_dashboard);
-
-        firebaseManager = FirebaseManager.getInstance();
-
-        if (!firebaseManager.isUserLoggedIn()) {
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-            return;
-        }
     }
 
     @Override

@@ -12,7 +12,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.deals.app.utils.FirebaseManager;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 
 public class LoginActivity extends AppCompatActivity {
@@ -66,43 +65,13 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setEnabled(false);
 
         firebaseManager.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
+                .addOnCompleteListener(this, task -> {
                     progressBar.setVisibility(View.GONE);
                     loginButton.setEnabled(true);
 
                     if (task.isSuccessful()) {
-                        // Check user type from Firestore
-                        String userId = firebaseManager.getCurrentUserId();
-                        firebaseManager.getFirestore().collection("users").document(userId)
-                                .get()
-                                .addOnSuccessListener(documentSnapshot -> {
-                                    if (documentSnapshot.exists()) {
-                                        String role = documentSnapshot.getString("role");
-                                        if ("business".equals(role)) {
-                                            startActivity(new Intent(LoginActivity.this, BusinessDashboardActivity.class));
-                                        } else {
-                                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                        }
-                                        finish();
-                                    } else {
-                                        // Default to consumer if no role found
-                                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                        finish();
-                                    }
-                                })
-                                .addOnFailureListener(exception -> {
-                                    // Error getting user document, redirect to main activity
-                                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                    finish();
-                                });
-                    } else {
-                        // Login failed
-                        Toast.makeText(LoginActivity.this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-                                    Toast.makeText(LoginActivity.this, "Error loading user data: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
-                                    firebaseManager.logException(exception);
-                                });
+                        Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                        checkUserRoleAndRedirect();
                     } else {
                         Exception exception = task.getException();
                         Toast.makeText(LoginActivity.this, "Login failed: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
