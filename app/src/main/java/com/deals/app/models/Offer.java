@@ -82,3 +82,45 @@ public class Offer {
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
 }
+package com.deals.app.models;
+
+public class Offer {
+    private String offerId;
+    private String title;
+    private String description;
+    private String category;
+    private String city;
+    private String businessId;
+    private long timestamp;
+
+    public Offer() {
+        // Required empty constructor for Firestore
+    }
+
+    public Offer(String title, String description, String category, String city, String businessId) {
+        this.title = title;
+        this.description = description;
+        this.category = category;
+        this.city = city;
+        this.businessId = businessId;
+        this.timestamp = System.currentTimeMillis();
+    }
+
+    // Getters
+    public String getOfferId() { return offerId; }
+    public String getTitle() { return title; }
+    public String getDescription() { return description; }
+    public String getCategory() { return category; }
+    public String getCity() { return city; }
+    public String getBusinessId() { return businessId; }
+    public long getTimestamp() { return timestamp; }
+
+    // Setters
+    public void setOfferId(String offerId) { this.offerId = offerId; }
+    public void setTitle(String title) { this.title = title; }
+    public void setDescription(String description) { this.description = description; }
+    public void setCategory(String category) { this.category = category; }
+    public void setCity(String city) { this.city = city; }
+    public void setBusinessId(String businessId) { this.businessId = businessId; }
+    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+}

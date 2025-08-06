@@ -91,6 +91,15 @@ public class LoginActivity extends AppCompatActivity {
                                     }
                                 })
                                 .addOnFailureListener(exception -> {
+                                    // Error getting user document, redirect to main activity
+                                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                    finish();
+                                });
+                    } else {
+                        // Login failed
+                        Toast.makeText(LoginActivity.this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
                                     Toast.makeText(LoginActivity.this, "Error loading user data: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                                     firebaseManager.logException(exception);
                                 });

@@ -21,6 +21,8 @@ import com.deals.app.utils.FirebaseManager;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+// Import for BuildConfig
+import com.deals.app.BuildConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void addTestCrashButton() {
         // Only add test crash button in debug builds for testing
+        // The original code had a "cannot find symbol" error for BuildConfig.
+        // This is fixed by adding the import statement.
         if (BuildConfig.DEBUG) {
             Button crashButton = new Button(this);
             crashButton.setText("Test Crash");
