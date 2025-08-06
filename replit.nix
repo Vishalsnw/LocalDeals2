@@ -1,7 +1,9 @@
-
 { pkgs }: {
   deps = [
-    pkgs.jdk17
+    pkgs.graalvm17-ce
+    pkgs.maven
+    pkgs.replitPackages.jdt-language-server
+    pkgs.replitPackages.java-debug
     pkgs.android-tools
   ];
 }

@@ -84,3 +84,69 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
         }
     }
 }
+package com.deals.app.adapters;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import com.deals.app.R;
+import com.deals.app.models.Offer;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Locale;
+
+public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHolder> {
+    private Context context;
+    private List<Offer> offerList;
+    private SimpleDateFormat dateFormat;
+
+    public OfferAdapter(Context context, List<Offer> offerList) {
+        this.context = context;
+        this.offerList = offerList;
+        this.dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+    }
+
+    @NonNull
+    @Override
+    public OfferViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_offer, parent, false);
+        return new OfferViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull OfferViewHolder holder, int position) {
+        Offer offer = offerList.get(position);
+        holder.titleTextView.setText(offer.getTitle());
+        holder.descriptionTextView.setText(offer.getDescription());
+        holder.businessNameTextView.setText(offer.getBusinessName());
+        holder.categoryTextView.setText(offer.getCategory());
+        holder.cityTextView.setText(offer.getCity());
+        
+        if (offer.getExpiryDate() != null) {
+            holder.expiryDateTextView.setText("Expires: " + dateFormat.format(offer.getExpiryDate()));
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        return offerList.size();
+    }
+
+    public static class OfferViewHolder extends RecyclerView.ViewHolder {
+        TextView titleTextView, descriptionTextView, businessNameTextView, categoryTextView, cityTextView, expiryDateTextView;
+
+        public OfferViewHolder(@NonNull View itemView) {
+            super(itemView);
+            titleTextView = itemView.findViewById(R.id.titleTextView);
+            descriptionTextView = itemView.findViewById(R.id.descriptionTextView);
+            businessNameTextView = itemView.findViewById(R.id.businessNameTextView);
+            categoryTextView = itemView.findViewById(R.id.categoryTextView);
+            cityTextView = itemView.findViewById(R.id.cityTextView);
+            expiryDateTextView = itemView.findViewById(R.id.expiryDateTextView);
+        }
+    }
+}

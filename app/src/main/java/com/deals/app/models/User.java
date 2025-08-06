@@ -79,3 +79,74 @@ public class User {
         this.createdAt = createdAt;
     }
 }
+package com.deals.app.models;
+
+public class User {
+    private String userId;
+    private String email;
+    private String name;
+    private String userType; // "customer" or "business"
+    private String businessId; // Only for business users
+    private long createdAt;
+
+    public User() {
+        // Default constructor required for calls to DataSnapshot.getValue(User.class)
+    }
+
+    public User(String userId, String email, String name, String userType) {
+        this.userId = userId;
+        this.email = email;
+        this.name = name;
+        this.userType = userType;
+        this.createdAt = System.currentTimeMillis();
+    }
+
+    // Getters and setters
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+
+    public String getBusinessId() {
+        return businessId;
+    }
+
+    public void setBusinessId(String businessId) {
+        this.businessId = businessId;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
+    }
+}
