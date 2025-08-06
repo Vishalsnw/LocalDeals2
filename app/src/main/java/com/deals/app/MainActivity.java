@@ -13,6 +13,7 @@ import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.ArrayAdapter;
 import android.widget.AdapterView;
+import android.widget.Toast;
 
 import com.deals.app.adapters.OfferAdapter;
 import com.deals.app.models.Offer;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         initViews();
         setupRecyclerView();
         setupSpinners();
+        setupSearchView();
         loadOffers();
         addTestCrashButton();
     }
@@ -117,22 +119,40 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void setupSearchView() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterOffers();
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterOffers();
+                return false;
+            }
+        });
+    }
+
     private void loadOffers() {
         firebaseManager.getFirestore().collection("offers")
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        offerList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Offer offer = document.toObject(Offer.class);
-                            offer.setOfferId(document.getId());
+                .orderBy("dateCreated", Query.Direction.DESCENDING)
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        Toast.makeText(this, "Error loading offers: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    offerList.clear();
+                    if (queryDocumentSnapshots != null) {
+                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                            Offer offer = doc.toObject(Offer.class);
+                            offer.setOfferId(doc.getId());
                             offerList.add(offer);
                         }
-                        offerAdapter.notifyDataSetChanged();
-                    } else {
-                        firebaseManager.logException(task.getException());
                     }
+                    offerAdapter.notifyDataSetChanged();
                 });
     }
 
@@ -186,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_logout) {
-            firebaseManager.getAuth().signOut();
+            firebaseManager.signOut();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return true;

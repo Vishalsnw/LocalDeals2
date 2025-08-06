@@ -1,4 +1,3 @@
-
 package com.deals.app;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -66,17 +65,35 @@ public class LoginActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         loginButton.setEnabled(false);
 
-        firebaseManager.getFirebaseAuth().signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
+        firebaseManager.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
                     progressBar.setVisibility(View.GONE);
                     loginButton.setEnabled(true);
 
                     if (task.isSuccessful()) {
-                        firebaseManager.setUserId(firebaseManager.getCurrentUserId());
-                        firebaseManager.log("User logged in successfully");
-                        
-                        // Check user role and redirect accordingly
-                        checkUserRoleAndRedirect();
+                        // Check user type from Firestore
+                        String userId = firebaseManager.getCurrentUserId();
+                        firebaseManager.getFirestore().collection("users").document(userId)
+                                .get()
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    if (documentSnapshot.exists()) {
+                                        String role = documentSnapshot.getString("role");
+                                        if ("business".equals(role)) {
+                                            startActivity(new Intent(LoginActivity.this, BusinessDashboardActivity.class));
+                                        } else {
+                                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                        }
+                                        finish();
+                                    } else {
+                                        // Default to consumer if no role found
+                                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                        finish();
+                                    }
+                                })
+                                .addOnFailureListener(exception -> {
+                                    Toast.makeText(LoginActivity.this, "Error loading user data: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                                    firebaseManager.logException(exception);
+                                });
                     } else {
                         Exception exception = task.getException();
                         Toast.makeText(LoginActivity.this, "Login failed: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
