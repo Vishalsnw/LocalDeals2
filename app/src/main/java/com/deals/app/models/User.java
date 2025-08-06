@@ -21,6 +21,15 @@ public class User {
         this.createdAt = System.currentTimeMillis();
     }
 
+    public User(String userId, String email, String name, String role, String city) {
+        this.userId = userId;
+        this.email = email;
+        this.name = name;
+        this.role = role;
+        this.city = city;
+        this.createdAt = System.currentTimeMillis();
+    }
+
     // Getters and setters
     public String getUserId() {
         return userId;
