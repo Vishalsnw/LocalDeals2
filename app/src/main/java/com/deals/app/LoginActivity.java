@@ -1,3 +1,4 @@
+
 package com.deals.app;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -65,30 +66,28 @@ public class LoginActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         loginButton.setEnabled(false);
 
-        firebaseManager.getAuth().signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
+        firebaseManager.getFirebaseAuth().signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
                     progressBar.setVisibility(View.GONE);
+                    loginButton.setEnabled(true);
 
-                    // Set user ID for Crashlytics
-                    firebaseManager.setUserId(firebaseManager.getCurrentUserId());
-                    firebaseManager.log("User logged in successfully");
-
-                    Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
-                    checkUserRoleAndRedirect();
-                } else {
-                    progressBar.setVisibility(View.GONE);
-                    Exception exception = task.getException();
-                    if (exception != null) {
+                    if (task.isSuccessful()) {
+                        firebaseManager.setUserId(firebaseManager.getCurrentUserId());
+                        firebaseManager.log("User logged in successfully");
+                        
+                        // Check user role and redirect accordingly
+                        checkUserRoleAndRedirect();
+                    } else {
+                        Exception exception = task.getException();
+                        Toast.makeText(LoginActivity.this, "Login failed: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                         firebaseManager.logException(exception);
                         firebaseManager.log("Login failed for email: " + email);
                     }
-                    Toast.makeText(LoginActivity.this, "Login failed: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
     private void checkUserRoleAndRedirect() {
         String userId = firebaseManager.getCurrentUserId();
-
         firebaseManager.getFirestore().collection("users").document(userId)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -96,19 +95,21 @@ public class LoginActivity extends AppCompatActivity {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
                             String role = document.getString("role");
-                            Intent intent;
-
-                            if ("business_owner".equals(role)) {
-                                intent = new Intent(LoginActivity.this, BusinessDashboardActivity.class);
+                            if ("business".equals(role)) {
+                                startActivity(new Intent(LoginActivity.this, BusinessDashboardActivity.class));
                             } else {
-                                intent = new Intent(LoginActivity.this, MainActivity.class);
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             }
-
-                            startActivity(intent);
+                            finish();
+                        } else {
+                            // User document doesn't exist, redirect to main activity
+                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
                         }
                     } else {
-                        Toast.makeText(LoginActivity.this, "Error getting user data", Toast.LENGTH_SHORT).show();
+                        // Error getting user document, redirect to main activity
+                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        finish();
                     }
                 });
     }
