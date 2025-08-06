@@ -16,4 +16,4 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "./gradlew assembleDebug"
+args = "export JAVA_HOME=/nix/store/graalvm17-ce && ./gradlew assembleDebug"
