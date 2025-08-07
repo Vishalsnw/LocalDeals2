@@ -4,41 +4,25 @@ package com.deals.app;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.deals.app.models.User;
 import com.deals.app.utils.FirebaseManager;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
-    private EditText nameEditText, emailEditText, passwordEditText;
-    private Spinner citySpinner;
-    private RadioGroup roleRadioGroup;
+    private EditText nameEditText, emailEditText, passwordEditText, confirmPasswordEditText;
+    private EditText businessNameEditText, businessCityEditText;
+    private RadioGroup userTypeRadioGroup;
+    private RadioButton customerRadioButton, businessOwnerRadioButton;
     private Button registerButton;
-    private TextView loginLink;
-    private ProgressBar progressBar;
     private FirebaseManager firebaseManager;
-
-    private String[] indianCities = {
-        "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata",
-        "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Kanpur", "Nagpur",
-        "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna", "Vadodara",
-        "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad", "Meerut"
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,134 +32,139 @@ public class RegisterActivity extends AppCompatActivity {
         firebaseManager = FirebaseManager.getInstance();
 
         initViews();
-        setupSpinner();
-        setupClickListeners();
+        setupListeners();
     }
 
     private void initViews() {
         nameEditText = findViewById(R.id.nameEditText);
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
-        citySpinner = findViewById(R.id.citySpinner);
-        roleRadioGroup = findViewById(R.id.roleRadioGroup);
+        confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText);
+        businessNameEditText = findViewById(R.id.businessNameEditText);
+        businessCityEditText = findViewById(R.id.businessCityEditText);
+        userTypeRadioGroup = findViewById(R.id.userTypeRadioGroup);
+        customerRadioButton = findViewById(R.id.customerRadioButton);
+        businessOwnerRadioButton = findViewById(R.id.businessOwnerRadioButton);
         registerButton = findViewById(R.id.registerButton);
-        loginLink = findViewById(R.id.loginLink);
-        progressBar = findViewById(R.id.progressBar);
     }
 
-    private void setupSpinner() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, indianCities);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        citySpinner.setAdapter(adapter);
-    }
-
-    private void setupClickListeners() {
-        registerButton.setOnClickListener(v -> registerUser());
-        loginLink.setOnClickListener(v -> {
-            startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+    private void setupListeners() {
+        userTypeRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.businessOwnerRadioButton) {
+                businessNameEditText.setVisibility(android.view.View.VISIBLE);
+                businessCityEditText.setVisibility(android.view.View.VISIBLE);
+            } else {
+                businessNameEditText.setVisibility(android.view.View.GONE);
+                businessCityEditText.setVisibility(android.view.View.GONE);
+            }
         });
+
+        registerButton.setOnClickListener(v -> registerUser());
     }
 
     private void registerUser() {
         String name = nameEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
-        String city = citySpinner.getSelectedItem().toString();
+        String confirmPassword = confirmPasswordEditText.getText().toString().trim();
 
-        int selectedRoleId = roleRadioGroup.getCheckedRadioButtonId();
-        if (selectedRoleId == -1) {
-            Toast.makeText(this, "Please select a role", Toast.LENGTH_SHORT).show();
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        RadioButton selectedRoleButton = findViewById(selectedRoleId);
-        String role = selectedRoleButton.getText().toString().toLowerCase();
-
-        if (validateInput(name, email, password)) {
-            progressBar.setVisibility(View.VISIBLE);
-            registerButton.setEnabled(false);
-
-            firebaseManager.getAuth().createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            String userId = firebaseManager.getCurrentUserId();
-                            if (userId != null) {
-                                User user = new User(userId, email, name, city, role);
-                                saveUserToFirestore(user);
-                            } else {
-                                progressBar.setVisibility(View.GONE);
-                                registerButton.setEnabled(true);
-                                Toast.makeText(RegisterActivity.this,
-                                    "Failed to get user ID", Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            progressBar.setVisibility(View.GONE);
-                            registerButton.setEnabled(true);
-                            String errorMsg = "Registration failed";
-                            if (task.getException() != null) {
-                                errorMsg = "Registration failed: " + task.getException().getMessage();
-                            }
-                            Toast.makeText(RegisterActivity.this, errorMsg, Toast.LENGTH_LONG).show();
-                        }
-                    });
-        }
-    }
-
-    private boolean validateInput(String name, String email, String password) {
-        if (TextUtils.isEmpty(name)) {
-            nameEditText.setError("Name is required");
-            return false;
-        }
-
-        if (TextUtils.isEmpty(email)) {
-            emailEditText.setError("Email is required");
-            return false;
-        }
-
-        if (TextUtils.isEmpty(password)) {
-            passwordEditText.setError("Password is required");
-            return false;
+        if (!password.equals(confirmPassword)) {
+            Toast.makeText(this, "Passwords don't match", Toast.LENGTH_SHORT).show();
+            return;
         }
 
         if (password.length() < 6) {
-            passwordEditText.setError("Password must be at least 6 characters");
-            return false;
+            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        return true;
+        boolean isBusinessOwner = businessOwnerRadioButton.isChecked();
+        String businessName = "";
+        String businessCity = "";
+
+        if (isBusinessOwner) {
+            businessName = businessNameEditText.getText().toString().trim();
+            businessCity = businessCityEditText.getText().toString().trim();
+
+            if (businessName.isEmpty() || businessCity.isEmpty()) {
+                Toast.makeText(this, "Please fill business details", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        registerButton.setEnabled(false);
+
+        String finalBusinessName = businessName;
+        String finalBusinessCity = businessCity;
+
+        firebaseManager.createUser(email, password, (authResult, exception) -> {
+            registerButton.setEnabled(true);
+
+            if (exception != null) {
+                Toast.makeText(RegisterActivity.this, "Registration failed: " + exception.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (authResult != null && authResult.getUser() != null) {
+                String userId = authResult.getUser().getUid();
+                
+                User user = new User();
+                user.setId(userId);
+                user.setName(name);
+                user.setEmail(email);
+                user.setBusinessOwner(isBusinessOwner);
+
+                Map<String, Object> userData = new HashMap<>();
+                userData.put("name", name);
+                userData.put("email", email);
+                userData.put("isBusinessOwner", isBusinessOwner);
+
+                firebaseManager.getFirestore().collection("users")
+                        .document(userId)
+                        .set(userData)
+                        .addOnCompleteListener(userTask -> {
+                            if (userTask.isSuccessful()) {
+                                if (isBusinessOwner) {
+                                    createBusinessProfile(userId, finalBusinessName, finalBusinessCity);
+                                } else {
+                                    navigateToMainActivity();
+                                }
+                            } else {
+                                Toast.makeText(RegisterActivity.this, "Error creating user profile", 
+                                    Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            }
+        });
     }
 
-    private void saveUserToFirestore(User user) {
-        firebaseManager.getFirestore().collection("users").document(user.getUid())
-                .set(user)
+    private void createBusinessProfile(String userId, String businessName, String businessCity) {
+        Map<String, Object> businessData = new HashMap<>();
+        businessData.put("name", businessName);
+        businessData.put("city", businessCity);
+        businessData.put("ownerId", userId);
+        businessData.put("description", "");
+
+        firebaseManager.getFirestore().collection("businesses")
+                .add(businessData)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // Set user ID for Crashlytics
-                        firebaseManager.setUserId(firebaseManager.getCurrentUserId());
-                        firebaseManager.setCustomKey("user_role", user.getRole());
-                        firebaseManager.setCustomKey("user_city", user.getCity());
-                        firebaseManager.log("User registered successfully with role: " + user.getRole());
-                        
-                        progressBar.setVisibility(View.GONE);
-                        registerButton.setEnabled(true);
-                        
-                        Toast.makeText(RegisterActivity.this,
-                            "Registration successful", Toast.LENGTH_SHORT).show();
-                        
-                        // Redirect based on role
-                        if ("business".equals(user.getRole())) {
-                            startActivity(new Intent(RegisterActivity.this, BusinessDashboardActivity.class));
-                        } else {
-                            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                        }
-                        finish();
+                        navigateToMainActivity();
                     } else {
-                        progressBar.setVisibility(View.GONE);
-                        registerButton.setEnabled(true);
-                        Toast.makeText(RegisterActivity.this,
-                            "Failed to save user information", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Error creating business profile", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void navigateToMainActivity() {
+        Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show();
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
     }
 }

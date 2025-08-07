@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.SearchView;
 import android.widget.Spinner;
@@ -31,12 +30,14 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView offersRecyclerView;
     private OfferAdapter offerAdapter;
     private List<Offer> offerList;
+    private List<Offer> filteredOfferList;
     private SearchView searchView;
     private Spinner categorySpinner, citySpinner;
+    private Button debugCrashButton;
     private FirebaseManager firebaseManager;
 
     private String[] categories = {"All", "Food", "Shopping", "Entertainment", "Health", "Beauty", "Travel", "Electronics"};
-    private String[] cities = {"All", "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune"};
+    private String[] cities = {"All", "Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
         setupSpinners();
         setupSearchView();
         loadOffers();
-        addTestCrashButton();
     }
 
     private void initViews() {
@@ -64,21 +64,31 @@ public class MainActivity extends AppCompatActivity {
         searchView = findViewById(R.id.searchView);
         categorySpinner = findViewById(R.id.categorySpinner);
         citySpinner = findViewById(R.id.citySpinner);
+        debugCrashButton = findViewById(R.id.debugCrashButton);
+
+        debugCrashButton.setOnClickListener(v -> {
+            FirebaseCrashlytics.getInstance().log("User triggered debug crash");
+            throw new RuntimeException("Test crash for debugging");
+        });
     }
 
     private void setupRecyclerView() {
         offerList = new ArrayList<>();
-        offerAdapter = new OfferAdapter(this, offerList);
+        filteredOfferList = new ArrayList<>();
+        offerAdapter = new OfferAdapter(this, filteredOfferList);
         offersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         offersRecyclerView.setAdapter(offerAdapter);
     }
 
     private void setupSpinners() {
-        // Setup category spinner
-        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, categories);
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         categorySpinner.setAdapter(categoryAdapter);
+
+        ArrayAdapter<String> cityAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, cities);
+        cityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        citySpinner.setAdapter(cityAdapter);
+
         categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
@@ -89,11 +99,6 @@ public class MainActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // Setup city spinner
-        ArrayAdapter<String> cityAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, cities);
-        cityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        citySpinner.setAdapter(cityAdapter);
         citySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
@@ -109,61 +114,65 @@ public class MainActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                filterOffers();
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 filterOffers();
-                return false;
+                return true;
             }
         });
     }
 
+    private void loadOffers() {
+        Calendar calendar = Calendar.getInstance();
+        long currentTime = calendar.getTimeInMillis();
+
+        firebaseManager.getFirestore().collection("offers")
+                .whereGreaterThan("expirationDate", currentTime)
+                .orderBy("expirationDate", Query.Direction.ASCENDING)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        offerList.clear();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Offer offer = document.toObject(Offer.class);
+                            offer.setId(document.getId());
+                            offerList.add(offer);
+                        }
+                        filterOffers();
+                    } else {
+                        Toast.makeText(this, "Error loading offers", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
     private void filterOffers() {
-        String searchText = searchView.getQuery().toString().toLowerCase();
+        String searchQuery = searchView.getQuery().toString().toLowerCase().trim();
         String selectedCategory = categorySpinner.getSelectedItem().toString();
         String selectedCity = citySpinner.getSelectedItem().toString();
 
-        List<Offer> filteredList = new ArrayList<>();
+        filteredOfferList.clear();
+
         for (Offer offer : offerList) {
-            boolean matchesSearch = searchText.isEmpty() || 
-                offer.getTitle().toLowerCase().contains(searchText) ||
-                offer.getDescription().toLowerCase().contains(searchText);
-            
-            boolean matchesCategory = selectedCategory.equals("All") || 
-                offer.getCategory().equals(selectedCategory);
-            
-            boolean matchesCity = selectedCity.equals("All") || 
-                offer.getCity().equals(selectedCity);
+            boolean matchesSearch = searchQuery.isEmpty() ||
+                    offer.getTitle().toLowerCase().contains(searchQuery) ||
+                    offer.getDescription().toLowerCase().contains(searchQuery) ||
+                    offer.getBusinessName().toLowerCase().contains(searchQuery);
+
+            boolean matchesCategory = selectedCategory.equals("All") ||
+                    offer.getCategory().equals(selectedCategory);
+
+            boolean matchesCity = selectedCity.equals("All") ||
+                    offer.getCity().equals(selectedCity);
 
             if (matchesSearch && matchesCategory && matchesCity) {
-                filteredList.add(offer);
+                filteredOfferList.add(offer);
             }
         }
-        offerAdapter.updateOffers(filteredList);
-    }
 
-    private void loadOffers() {
-        firebaseManager.getFirestore().collection("offers")
-            .whereGreaterThan("expiryDate", Calendar.getInstance().getTime())
-            .orderBy("expiryDate", Query.Direction.ASCENDING)
-            .get()
-            .addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    offerList.clear();
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        Offer offer = document.toObject(Offer.class);
-                        offer.setId(document.getId());
-                        offerList.add(offer);
-                    }
-                    offerAdapter.notifyDataSetChanged();
-                } else {
-                    Toast.makeText(this, "Error loading offers: " + task.getException().getMessage(), 
-                        Toast.LENGTH_SHORT).show();
-                }
-            });
+        offerAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -174,32 +183,16 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_logout) {
-            firebaseManager.signOut();
+        int id = item.getItemId();
+        if (id == R.id.action_business_dashboard) {
+            startActivity(new Intent(this, BusinessDashboardActivity.class));
+            return true;
+        } else if (id == R.id.action_logout) {
+            firebaseManager.logout();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void addTestCrashButton() {
-        try {
-            // Only add test crash button in debug builds for testing
-            if (BuildConfig.DEBUG) {
-                Button crashButton = new Button(this);
-                crashButton.setText("Test Crash");
-                crashButton.setOnClickListener(v -> {
-                    throw new RuntimeException("Test Crash"); // Force a crash
-                });
-
-                addContentView(crashButton, new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ));
-            }
-        } catch (Exception e) {
-            // Ignore any issues with adding the crash button
-        }
     }
 }
