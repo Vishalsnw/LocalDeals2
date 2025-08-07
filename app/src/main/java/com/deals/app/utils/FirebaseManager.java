@@ -94,4 +94,20 @@ public class FirebaseManager {
         Log.d(TAG, message);
         crashlytics.log(message);
     }
+
+    public com.google.android.gms.tasks.Task<com.google.firebase.auth.AuthResult> createUserWithEmailAndPassword(String email, String password) {
+        return auth.createUserWithEmailAndPassword(email, password);
+    }
+
+    public com.google.android.gms.tasks.Task<com.google.firebase.auth.AuthResult> signInWithEmailAndPassword(String email, String password) {
+        return auth.signInWithEmailAndPassword(email, password);
+    }
+
+    public void logout() {
+        auth.signOut();
+    }
+
+    public FirebaseFirestore getFirestore() {
+        return firestore;
+    }
 }

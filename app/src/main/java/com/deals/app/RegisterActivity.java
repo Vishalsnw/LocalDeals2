@@ -68,6 +68,105 @@ public class RegisterActivity extends AppCompatActivity {
         String password = passwordEditText.getText().toString().trim();
         String confirmPassword = confirmPasswordEditText.getText().toString().trim();
 
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String userType = businessOwnerRadioButton.isChecked() ? "business" : "customer";
+        
+        firebaseManager.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    saveUserData(name, email, userType);
+                } else {
+                    Toast.makeText(this, "Registration failed: " + task.getException().getMessage(), 
+                        Toast.LENGTH_SHORT).show();
+                }
+            });
+    }
+
+    private void saveUserData(String name, String email, String userType) {
+        String userId = firebaseManager.getCurrentUserId();
+        if (userId == null) return;
+
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("name", name);
+        userData.put("email", email);
+        userData.put("role", userType);
+        userData.put("dateCreated", System.currentTimeMillis());
+
+        firebaseManager.getFirestore().collection("users").document(userId)
+            .set(userData)
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    if ("business".equals(userType)) {
+                        createBusinessProfile(name);
+                    } else {
+                        redirectToMainActivity();
+                    }
+                } else {
+                    Toast.makeText(this, "Failed to save user data", Toast.LENGTH_SHORT).show();
+                }
+            });
+    }
+
+    private void createBusinessProfile(String ownerName) {
+        String businessName = businessNameEditText.getText().toString().trim();
+        String businessCity = businessCityEditText.getText().toString().trim();
+        
+        if (businessName.isEmpty()) businessName = ownerName + "'s Business";
+        if (businessCity.isEmpty()) businessCity = "Not specified";
+
+        Map<String, Object> businessData = new HashMap<>();
+        businessData.put("name", businessName);
+        businessData.put("ownerId", firebaseManager.getCurrentUserId());
+        businessData.put("city", businessCity);
+        businessData.put("description", "New business");
+        businessData.put("dateCreated", System.currentTimeMillis());
+
+        firebaseManager.getFirestore().collection("businesses")
+            .add(businessData)
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    startActivity(new Intent(this, BusinessDashboardActivity.class));
+                    finish();
+                } else {
+                    Toast.makeText(this, "Failed to create business profile", Toast.LENGTH_SHORT).show();
+                }
+            });
+    }
+
+    private void redirectToMainActivity() {
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
+    }
+
+    private void setupListeners() {
+        userTypeRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.businessOwnerRadioButton) {
+                businessNameEditText.setVisibility(android.view.View.VISIBLE);
+                businessCityEditText.setVisibility(android.view.View.VISIBLE);
+            } else {
+                businessNameEditText.setVisibility(android.view.View.GONE);
+                businessCityEditText.setVisibility(android.view.View.GONE);
+            }
+        });
+
+        registerButton.setOnClickListener(v -> registerUser());
+    }
+
+    private void registerUser() {
+        String name = nameEditText.getText().toString().trim();
+        String email = emailEditText.getText().toString().trim();
+        String password = passwordEditText.getText().toString().trim();
+        String confirmPassword = confirmPasswordEditText.getText().toString().trim();
+
         if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
