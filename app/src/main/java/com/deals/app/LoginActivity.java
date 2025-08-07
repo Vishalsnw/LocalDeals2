@@ -1,3 +1,4 @@
+
 package com.deals.app;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,7 +13,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.deals.app.utils.FirebaseManager;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.deals.app.models.User;
 import java.util.Calendar;
@@ -67,19 +67,19 @@ public class LoginActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         loginButton.setEnabled(false);
 
-        firebaseManager.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
+        firebaseManager.getAuth().signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
                     progressBar.setVisibility(View.GONE);
                     loginButton.setEnabled(true);
 
                     if (task.isSuccessful()) {
-                        Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
                         checkUserRoleAndRedirect();
                     } else {
-                        Exception exception = task.getException();
-                        Toast.makeText(LoginActivity.this, "Login failed: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
-                        firebaseManager.logException(exception);
-                        firebaseManager.log("Login failed for email: " + email);
+                        String errorMsg = "Authentication failed";
+                        if (task.getException() != null) {
+                            errorMsg = "Authentication failed: " + task.getException().getMessage();
+                        }
+                        Toast.makeText(LoginActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                     }
                 });
     }
