@@ -64,6 +64,11 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
         return offerList.size();
     }
 
+    public void updateOffers(List<Offer> newOfferList) {
+        this.offerList = newOfferList;
+        notifyDataSetChanged();
+    }
+
     public static class OfferViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView, descriptionTextView, businessNameTextView, categoryTextView, cityTextView;
         TextView originalPriceTextView, discountedPriceTextView, discountPercentageTextView, expirationDateTextView;

@@ -36,13 +36,14 @@ import com.deals.app.adapters.BusinessOfferAdapter;
 import com.deals.app.models.Business;
 import com.deals.app.models.Offer;
 import com.deals.app.utils.FirebaseManager;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BusinessDashboardActivity extends AppCompatActivity {
     private RecyclerView businessOffersRecyclerView;

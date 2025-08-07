@@ -22,7 +22,6 @@ import com.deals.app.utils.FirebaseManager;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.deals.app.BuildConfig;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -58,6 +57,84 @@ public class MainActivity extends AppCompatActivity {
         setupSearchView();
         loadOffers();
         addTestCrashButton();
+    }
+
+    private void setupSearchView() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterOffers();
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterOffers();
+                return false;
+            }
+        });
+    }
+
+    private void filterOffers() {
+        String searchText = searchView.getQuery().toString().toLowerCase();
+        String selectedCategory = categorySpinner.getSelectedItem().toString();
+        String selectedCity = citySpinner.getSelectedItem().toString();
+
+        List<Offer> filteredList = new ArrayList<>();
+        for (Offer offer : offerList) {
+            boolean matchesSearch = searchText.isEmpty() || 
+                offer.getTitle().toLowerCase().contains(searchText) ||
+                offer.getDescription().toLowerCase().contains(searchText);
+            
+            boolean matchesCategory = selectedCategory.equals("All") || 
+                offer.getCategory().equals(selectedCategory);
+            
+            boolean matchesCity = selectedCity.equals("All") || 
+                offer.getCity().equals(selectedCity);
+
+            if (matchesSearch && matchesCategory && matchesCity) {
+                filteredList.add(offer);
+            }
+        }
+        offerAdapter.updateOffers(filteredList);
+    }
+
+    private void loadOffers() {
+        firebaseManager.getFirestore().collection("offers")
+            .whereGreaterThan("expiryDate", Calendar.getInstance().getTime())
+            .orderBy("expiryDate", Query.Direction.ASCENDING)
+            .get()
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    offerList.clear();
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        Offer offer = document.toObject(Offer.class);
+                        offer.setId(document.getId());
+                        offerList.add(offer);
+                    }
+                    offerAdapter.notifyDataSetChanged();
+                } else {
+                    Toast.makeText(this, "Error loading offers: " + task.getException().getMessage(), 
+                        Toast.LENGTH_SHORT).show();
+                }
+            });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_logout) {
+            firebaseManager.signOut();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void addTestCrashButton() {
