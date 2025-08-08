@@ -30,8 +30,9 @@ jobs:
 
       - name: 🔍 Check Java compile errors (No Build)
         run: |
-          ./gradlew compileDebugJavaWithJavac --continue --no-daemon
-          if [ $? -eq 0 ]; then
+          echo "🚀 Checking Java compile errors..."
+          ./gradlew compileDebugJavaWithJavac --continue --no-daemon 2>&1 | tee build.log
+          if [ ${PIPESTATUS[0]} -eq 0 ]; then
             echo "✅ You are good to build APK"
           else
             echo "❌ Errors found. Fix before building APK."
