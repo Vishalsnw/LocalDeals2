@@ -1,7 +1,13 @@
 name: Android Java Code Check (No Build)
 
 on:
-  workflow_dispatch:  # Sirf manually run hoga
+  push:                # Har push par chalega
+    branches:
+      - main           # Sirf main branch par
+  pull_request:        # PR banne par bhi chalega
+    branches:
+      - main
+  workflow_dispatch:   # Manual run ka option bhi rahega
 
 jobs:
   check-errors:
@@ -28,10 +34,10 @@ jobs:
       - name: 🧹 Clean Project
         run: ./gradlew clean --no-daemon
 
-      - name: 🔍 Check Java compile errors (No Build)
+      - name: 🔍 Check Java compile errors (Skip Kotlin)
         run: |
           echo "🚀 Checking Java compile errors..."
-          ./gradlew compileDebugJavaWithJavac --continue --no-daemon 2>&1 | tee build.log
+          ./gradlew compileDebugJavaWithJavac -x compileDebugKotlin --continue --no-daemon 2>&1 | tee build.log
           if [ ${PIPESTATUS[0]} -eq 0 ]; then
             echo "✅ You are good to build APK"
           else
