@@ -1,0 +1,33 @@
+name: Android Code Check (No Build)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  check-errors:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Check for compile errors
+        run: |
+          ./gradlew compileDebugKotlin compileDebugJavaWithJavac --continue
+          if [ $? -eq 0 ]; then
+            echo "✅ You are good to build APK"
+          else
+            echo "❌ Errors found. Fix before building APK."
+            exit 1
+          fi
