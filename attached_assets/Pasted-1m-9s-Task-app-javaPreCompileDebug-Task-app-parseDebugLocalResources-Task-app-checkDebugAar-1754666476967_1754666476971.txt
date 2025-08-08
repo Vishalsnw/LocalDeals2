@@ -1,0 +1,65 @@
+1m 9s
+> Task :app:javaPreCompileDebug
+> Task :app:parseDebugLocalResources
+> Task :app:checkDebugAarMetadata
+> Task :app:dataBindingGenBaseClassesDebug
+> Task :app:mapDebugSourceSetPaths
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+> Task :app:compileDebugJavaWithJavac FAILED
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:98: error: class, interface, or enum expected
+package com.deals.app.adapters;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:100: error: class, interface, or enum expected
+import android.content.Context;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:101: error: class, interface, or enum expected
+import android.view.LayoutInflater;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:102: error: class, interface, or enum expected
+import android.view.View;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:103: error: class, interface, or enum expected
+import android.view.ViewGroup;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:104: error: class, interface, or enum expected
+import android.widget.Button;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:105: error: class, interface, or enum expected
+import android.widget.TextView;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:106: error: class, interface, or enum expected
+import androidx.annotation.NonNull;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:107: error: class, interface, or enum expected
+import androidx.recyclerview.widget.RecyclerView;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:108: error: class, interface, or enum expected
+import com.deals.app.R;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:109: error: class, interface, or enum expected
+import com.deals.app.models.Offer;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/adapters/BusinessOfferAdapter.java:110: error: class, interface, or enum expected
+import java.util.List;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/models/Business.java:123: error: class, interface, or enum expected
+package com.deals.app.models;
+^
+/home/runner/work/LocalDeals2/LocalDeals2/app/src/main/java/com/deals/app/models/User.java:81: error: class, interface, or enum expected
+package com.deals.app.models;
+^
+14 errors
+FAILURE: Build failed with an exception.
+* What went wrong:
+Execution failed for task ':app:compileDebugJavaWithJavac'.
+> Compilation failed; see the compiler error output for details.
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+* Get more help at https:/
