@@ -243,7 +243,7 @@ public class BusinessDashboardActivity extends AppCompatActivity implements Busi
     }
 
     @Override
-    public void onDelete(Offer offer) {
+    public void onOfferDelete(Offer offer) {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Offer")
                 .setMessage("Are you sure you want to delete this offer?")
