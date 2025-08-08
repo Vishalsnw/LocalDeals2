@@ -59,7 +59,7 @@ public class Offer implements Parcelable {
         expirationDate = in.readLong();
         isActive = in.readByte() != 0;
         dateCreated = in.readLong();
-        // Note: ownerId is not read here, which might be an issue if it's needed.
+        ownerId = in.readString();
     }
 
     public String getOfferId() {
@@ -205,6 +205,7 @@ public class Offer implements Parcelable {
         dest.writeLong(expirationDate);
         dest.writeByte((byte) (isActive ? 1 : 0));
         dest.writeLong(dateCreated);
+        dest.writeString(ownerId);
     }
 
     @Override

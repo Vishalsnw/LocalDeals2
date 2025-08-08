@@ -78,6 +78,15 @@ public class User {
         this.createdAt = createdAt;
     }
 }
+
+    public long getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
+    }
+}
 package com.deals.app.models;
 
 public class User {

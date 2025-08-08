@@ -6,13 +6,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.deals.app.R;
 import com.deals.app.models.Offer;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -92,88 +89,6 @@ public class BusinessOfferAdapter extends RecyclerView.Adapter<BusinessOfferAdap
             expirationDateTextView = itemView.findViewById(R.id.expirationDateTextView);
             statusTextView = itemView.findViewById(R.id.statusTextView);
             deleteButton = itemView.findViewById(R.id.deleteButton);
-        }
-    }
-}
-package com.deals.app.adapters;
-
-import android.content.Context;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-import com.deals.app.R;
-import com.deals.app.models.Offer;
-import java.util.List;
-
-public class BusinessOfferAdapter extends RecyclerView.Adapter<BusinessOfferAdapter.ViewHolder> {
-    private Context context;
-    private List<Offer> offers;
-    private OnOfferActionListener listener;
-
-    public interface OnOfferActionListener {
-        void onEditOffer(Offer offer);
-        void onDeleteOffer(Offer offer);
-        void onToggleOfferStatus(Offer offer);
-    }
-
-    public BusinessOfferAdapter(Context context, List<Offer> offers, OnOfferActionListener listener) {
-        this.context = context;
-        this.offers = offers;
-        this.listener = listener;
-    }
-
-    @NonNull
-    @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_business_offer, parent, false);
-        return new ViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Offer offer = offers.get(position);
-        
-        holder.titleTextView.setText(offer.getTitle());
-        holder.descriptionTextView.setText(offer.getDescription());
-        holder.priceTextView.setText(String.format("₹%.2f (%.0f%% off)", 
-            offer.getDiscountedPrice(), (double)offer.getDiscountPercentage()));
-        holder.statusTextView.setText(offer.isActive() ? "Active" : "Inactive");
-        
-        holder.editButton.setOnClickListener(v -> {
-            if (listener != null) listener.onEditOffer(offer);
-        });
-        
-        holder.deleteButton.setOnClickListener(v -> {
-            if (listener != null) listener.onDeleteOffer(offer);
-        });
-        
-        holder.toggleButton.setOnClickListener(v -> {
-            if (listener != null) listener.onToggleOfferStatus(offer);
-        });
-    }
-
-    @Override
-    public int getItemCount() {
-        return offers.size();
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView titleTextView, descriptionTextView, priceTextView, statusTextView;
-        Button editButton, deleteButton, toggleButton;
-
-        public ViewHolder(@NonNull View itemView) {
-            super(itemView);
-            titleTextView = itemView.findViewById(R.id.titleTextView);
-            descriptionTextView = itemView.findViewById(R.id.descriptionTextView);
-            priceTextView = itemView.findViewById(R.id.priceTextView);
-            statusTextView = itemView.findViewById(R.id.statusTextView);
-            editButton = itemView.findViewById(R.id.editButton);
-            deleteButton = itemView.findViewById(R.id.deleteButton);
-            toggleButton = itemView.findViewById(R.id.toggleButton);
         }
     }
 }
