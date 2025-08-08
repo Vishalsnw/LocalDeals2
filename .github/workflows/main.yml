@@ -1,13 +1,7 @@
 name: Android CI/CD Pipeline
 
 on:
-  workflow_dispatch:
-  push:
-    branches: [ main ]
-    paths-ignore:
-      - '**.md'
-      - '**.txt'
-      - '**.gitignore'
+  workflow_dispatch:  # Sirf manually chalega
 
 env:
   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
