@@ -1,7 +1,7 @@
-name: Android CI/CD Pipeline (Java Only)
+name: Android CI/CD Pipeline (Java Only - Fixed)
 
 on:
-  workflow_dispatch:  # Sirf manually chalega
+  workflow_dispatch:
 
 env:
   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
@@ -13,12 +13,12 @@ jobs:
     timeout-minutes: 25
 
     steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: 🛠 Make gradlew Executable
+      - name: 🛠 Make gradlew executable
         run: chmod +x ./gradlew
 
       - name: ⚙️ Set up JDK 17
@@ -26,54 +26,54 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
 
-      - name: 📱 Setup Android SDK
+      - name: 📱 Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: 'latest'
 
-      - name: 📜 Accept Licenses
+      - name: 📜 Accept licenses
         run: yes | sdkmanager --licenses
 
-      - name: 🧹 Clean Project
+      - name: 🧹 Clean project
         run: ./gradlew clean --no-daemon
 
-      - name: 🔨 Build Debug APK (Java Only)
+      - name: 🔨 Build Debug APK (Java only)
         run: |
-          echo "🚀 Building Debug APK (Java only, skipping Kotlin)..."
-          ./gradlew compileDebugJavaWithJavac assembleDebug -x compileDebugKotlin --no-daemon --stacktrace 2>&1 | tee build.log
+          echo "🚀 Building Debug APK (Java only, skipping Kotlin/DataBinding)..."
+          ./gradlew :app:compileDebugJavaWithJavac assembleDebug \
+            -x compileDebugKotlin \
+            -x dataBindingGenBaseClassesDebug \
+            --no-daemon --stacktrace 2>&1 | tee build.log
         continue-on-error: true
 
-      - name: 🔨 Build Release APK (Java Only)
+      - name: 🔨 Build Release APK (Java only)
         run: |
-          echo "🚀 Building Release APK (Java only, skipping Kotlin)..."
-          ./gradlew compileReleaseJavaWithJavac assembleRelease -x compileReleaseKotlin --no-daemon --stacktrace 2>&1 | tee -a build.log
+          echo "🚀 Building Release APK (Java only, skipping Kotlin/DataBinding)..."
+          ./gradlew :app:compileReleaseJavaWithJavac assembleRelease \
+            -x compileReleaseKotlin \
+            -x dataBindingGenBaseClassesRelease \
+            --no-daemon --stacktrace 2>&1 | tee -a build.log
         continue-on-error: true
 
-      - name: 🔍 Extract and Show Java Errors
+      - name: 🔍 Extract Java errors
         if: always()
         run: |
           echo "📋 JAVA BUILD ERRORS:" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          
-          # Sirf Java error lines nikaalna
           grep -E 'error: ' build.log | head -n 20 >> $GITHUB_STEP_SUMMARY || true
-          
           echo '```' >> $GITHUB_STEP_SUMMARY
-          
-          # Console output
           echo "🚨 ERRORS FOUND:"
           grep -E 'error: ' build.log | head -n 20 || echo "No Java errors detected"
 
-      - name: 📦 Check APK Build Status
+      - name: 📦 Check APK build status
         if: always()
         run: |
           DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"
           RELEASE_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
-          
+
           echo "### 📦 APK Build Results" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -f "$DEBUG_APK" ]; then
             echo "✅ Debug APK built successfully!"
             echo "- ✅ Debug APK: Built" >> $GITHUB_STEP_SUMMARY
@@ -82,7 +82,7 @@ jobs:
             echo "❌ Debug APK build failed"
             echo "- ❌ Debug APK: Failed" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ -f "$RELEASE_APK" ]; then
             echo "✅ Release APK built successfully!"
             echo "- ✅ Release APK: Built" >> $GITHUB_STEP_SUMMARY
@@ -92,7 +92,7 @@ jobs:
             echo "- ❌ Release APK: Failed" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: 📤 Upload APK Artifacts
+      - name: 📤 Upload APK artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -102,7 +102,7 @@ jobs:
             app/build/outputs/apk/release/*.apk
           if-no-files-found: warn
 
-      - name: ❌ Final Java Error Check
+      - name: ❌ Final Java error check
         if: always()
         run: |
           if grep -q "error:" build.log; then
