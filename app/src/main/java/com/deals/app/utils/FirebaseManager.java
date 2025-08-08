@@ -4,6 +4,7 @@ package com.deals.app.utils;
 import android.util.Log;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -24,7 +25,9 @@ public class FirebaseManager {
             storage = FirebaseStorage.getInstance();
             crashlytics = FirebaseCrashlytics.getInstance();
         } catch (Exception e) {
-            crashlytics.recordException(e);
+            if (crashlytics != null) {
+                crashlytics.recordException(e);
+            }
             throw new RuntimeException("Firebase initialization failed: " + e.getMessage(), e);
         }
     }
@@ -60,16 +63,20 @@ public class FirebaseManager {
         return auth.getCurrentUser();
     }
 
-    public boolean isUserLoggedIn() {
-        return getCurrentUser() != null;
-    }
-
     public String getCurrentUserId() {
         FirebaseUser user = getCurrentUser();
         return user != null ? user.getUid() : null;
     }
 
+    public boolean isUserLoggedIn() {
+        return getCurrentUser() != null;
+    }
+
     public void signOut() {
+        auth.signOut();
+    }
+
+    public void logout() {
         auth.signOut();
     }
 
@@ -79,80 +86,36 @@ public class FirebaseManager {
 
     public void logException(Exception e) {
         Log.e(TAG, "Exception occurred", e);
-        crashlytics.recordException(e);
+        if (crashlytics != null) {
+            crashlytics.recordException(e);
+        }
     }
 
     public void setUserId(String userId) {
-        crashlytics.setUserId(userId);
+        if (crashlytics != null) {
+            crashlytics.setUserId(userId);
+        }
     }
 
     public void setCustomKey(String key, String value) {
-        crashlytics.setCustomKey(key, value);
+        if (crashlytics != null) {
+            crashlytics.setCustomKey(key, value);
+        }
     }
 
     public void log(String message) {
         Log.d(TAG, message);
-        crashlytics.log(message);
+        if (crashlytics != null) {
+            crashlytics.log(message);
+        }
     }
 
-    public com.google.android.gms.tasks.Task<com.google.firebase.auth.AuthResult> createUserWithEmailAndPassword(String email, String password) {
+    public com.google.android.gms.tasks.Task<AuthResult> createUserWithEmailAndPassword(String email, String password) {
         return auth.createUserWithEmailAndPassword(email, password);
     }
 
-    public com.google.android.gms.tasks.Task<com.google.firebase.auth.AuthResult> signInWithEmailAndPassword(String email, String password) {
+    public com.google.android.gms.tasks.Task<AuthResult> signInWithEmailAndPassword(String email, String password) {
         return auth.signInWithEmailAndPassword(email, password);
-    }
-
-    public void logout() {
-        auth.signOut();
-    }
-
-    public FirebaseFirestore getFirestore() {
-        return firestore;
-    }
-}
-package com.deals.app.utils;
-
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.auth.AuthResult;
-
-public class FirebaseManager {
-    private static FirebaseManager instance;
-    private FirebaseAuth firebaseAuth;
-    private FirebaseFirestore firestore;
-
-    private FirebaseManager() {
-        firebaseAuth = FirebaseAuth.getInstance();
-        firestore = FirebaseFirestore.getInstance();
-    }
-
-    public static FirebaseManager getInstance() {
-        if (instance == null) {
-            instance = new FirebaseManager();
-        }
-        return instance;
-    }
-
-    public FirebaseAuth getAuth() {
-        return firebaseAuth;
-    }
-
-    public FirebaseFirestore getFirestore() {
-        return firestore;
-    }
-
-    public boolean isUserLoggedIn() {
-        return firebaseAuth.getCurrentUser() != null;
-    }
-
-    public FirebaseUser getCurrentUser() {
-        return firebaseAuth.getCurrentUser();
-    }
-
-    public void logout() {
-        firebaseAuth.signOut();
     }
 
     public interface AuthCallback {
@@ -160,7 +123,7 @@ public class FirebaseManager {
     }
 
     public void createUser(String email, String password, AuthCallback callback) {
-        firebaseAuth.createUserWithEmailAndPassword(email, password)
+        auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     callback.onResult(task.getResult(), null);
@@ -171,7 +134,7 @@ public class FirebaseManager {
     }
 
     public void signInUser(String email, String password, AuthCallback callback) {
-        firebaseAuth.signInWithEmailAndPassword(email, password)
+        auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     callback.onResult(task.getResult(), null);
