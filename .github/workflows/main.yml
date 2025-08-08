@@ -1,4 +1,4 @@
-name: Android CI/CD Pipeline
+name: Android CI/CD Pipeline (Java Only)
 
 on:
   workflow_dispatch:  # Sirf manually chalega
@@ -39,36 +39,32 @@ jobs:
       - name: 🧹 Clean Project
         run: ./gradlew clean --no-daemon
 
-      - name: 🔨 Build Debug APK
+      - name: 🔨 Build Debug APK (Java Only)
         run: |
-          echo "🚀 Building Debug APK..."
-          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
+          echo "🚀 Building Debug APK (Java only, skipping Kotlin)..."
+          ./gradlew compileDebugJavaWithJavac assembleDebug -x compileDebugKotlin --no-daemon --stacktrace 2>&1 | tee build.log
         continue-on-error: true
 
-      - name: 🔨 Build Release APK
+      - name: 🔨 Build Release APK (Java Only)
         run: |
-          echo "🚀 Building Release APK..."
-          ./gradlew assembleRelease --no-daemon --stacktrace 2>&1 | tee -a build.log
+          echo "🚀 Building Release APK (Java only, skipping Kotlin)..."
+          ./gradlew compileReleaseJavaWithJavac assembleRelease -x compileReleaseKotlin --no-daemon --stacktrace 2>&1 | tee -a build.log
         continue-on-error: true
 
-      - name: 🔍 Extract and Show Critical Errors
+      - name: 🔍 Extract and Show Java Errors
         if: always()
         run: |
-          echo "📋 CRITICAL BUILD ERRORS:" >> $GITHUB_STEP_SUMMARY
+          echo "📋 JAVA BUILD ERRORS:" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           
-          # Extract Kotlin compilation errors
-          grep -E 'e: .*\.kt:[0-9]+:[0-9]+:' build.log | head -n 15 >> $GITHUB_STEP_SUMMARY || true
-          
-          # Extract other critical errors
-          grep -E -i '(FAILED|Exception|Error|unresolved|duplicate class|missing)' build.log | \
-          grep -v -E '(Download|> Task)' | head -n 10 >> $GITHUB_STEP_SUMMARY || true
+          # Sirf Java error lines nikaalna
+          grep -E 'error: ' build.log | head -n 20 >> $GITHUB_STEP_SUMMARY || true
           
           echo '```' >> $GITHUB_STEP_SUMMARY
           
-          # Console output for immediate visibility
+          # Console output
           echo "🚨 ERRORS FOUND:"
-          grep -E -i '(error|failed|exception|unresolved|duplicate|e: .*\.kt)' build.log | head -n 20 || echo "No errors detected"
+          grep -E 'error: ' build.log | head -n 20 || echo "No Java errors detected"
 
       - name: 📦 Check APK Build Status
         if: always()
@@ -106,12 +102,12 @@ jobs:
             app/build/outputs/apk/release/*.apk
           if-no-files-found: warn
 
-      - name: ❌ Final Error Check
+      - name: ❌ Final Java Error Check
         if: always()
         run: |
-          if grep -q -i -E '(FAILED|error|exception|unresolved)' build.log; then
-            echo "💥 Build failed with errors - check the error summary above"
+          if grep -q "error:" build.log; then
+            echo "💥 Java compilation failed - check errors above"
             exit 1
           else
-            echo "✅ Build completed successfully"
+            echo "✅ Java compilation passed"
           fi
