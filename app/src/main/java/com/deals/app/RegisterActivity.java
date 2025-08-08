@@ -158,7 +158,7 @@ public class RegisterActivity extends AppCompatActivity {
         String businessName = businessNameEditText.getText().toString().trim();
         String businessCity = businessCityEditText.getText().toString().trim();
 
-        Business business = new Business(businessName, businessCity, user.getId());
+        Business business = new Business(businessName, user.getId(), businessCity, "");
         business.setOwnerId(user.getId());
 
         firebaseManager.getFirestore().collection("businesses")

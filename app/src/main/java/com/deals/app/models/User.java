@@ -1,6 +1,7 @@
 package com.deals.app.models;
 
 public class User {
+    private String id;
     private String userId;
     private String email;
     private String name;
@@ -10,6 +11,13 @@ public class User {
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
+    }
+
+    public User(String name, String email, String role) {
+        this.name = name;
+        this.email = email;
+        this.role = role;
+        this.createdAt = System.currentTimeMillis();
     }
 
     public User(String email, String name, String role, String city) {
@@ -30,6 +38,14 @@ public class User {
     }
 
     // Getters and setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getUserId() {
         return userId;
     }
