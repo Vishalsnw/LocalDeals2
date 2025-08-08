@@ -20,4 +20,8 @@ args = "./gradlew clean"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "./gradlew assembleDebug"
+args = "./gradlew app:compileDebugJavaWithJavac"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./gradlew app:assembleDebug"
