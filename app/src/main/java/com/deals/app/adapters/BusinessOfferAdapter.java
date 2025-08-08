@@ -1,3 +1,4 @@
+
 package com.deals.app.adapters;
 
 import android.content.Context;
@@ -10,26 +11,21 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.deals.app.R;
 import com.deals.app.models.Offer;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class BusinessOfferAdapter extends RecyclerView.Adapter<BusinessOfferAdapter.BusinessOfferViewHolder> {
     private Context context;
     private List<Offer> offerList;
-    private SimpleDateFormat dateFormat;
     private OnOfferDeleteListener deleteListener;
 
     public interface OnOfferDeleteListener {
-        void onDelete(Offer offer);
+        void onOfferDelete(Offer offer);
     }
 
     public BusinessOfferAdapter(Context context, List<Offer> offerList, OnOfferDeleteListener deleteListener) {
         this.context = context;
         this.offerList = offerList;
         this.deleteListener = deleteListener;
-        this.dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
     }
 
     @NonNull
@@ -42,37 +38,33 @@ public class BusinessOfferAdapter extends RecyclerView.Adapter<BusinessOfferAdap
     @Override
     public void onBindViewHolder(@NonNull BusinessOfferViewHolder holder, int position) {
         Offer offer = offerList.get(position);
-
+        
         holder.titleTextView.setText(offer.getTitle());
         holder.descriptionTextView.setText(offer.getDescription());
         holder.categoryTextView.setText(offer.getCategory());
-
-        holder.originalPriceTextView.setText(String.format(Locale.getDefault(), "₹%.2f", offer.getOriginalPrice()));
-        holder.discountedPriceTextView.setText(String.format(Locale.getDefault(), "₹%.2f", offer.getDiscountedPrice()));
-        holder.discountPercentageTextView.setText(String.format(Locale.getDefault(), "%d%% OFF", offer.getDiscountPercentage()));
-
-        Date expirationDate = new Date(offer.getExpirationDate());
-        holder.expirationDateTextView.setText("Expires: " + dateFormat.format(expirationDate));
-
-        // Check if offer is expired
-        boolean isExpired = offer.getExpirationDate() < System.currentTimeMillis();
-        holder.statusTextView.setText(isExpired ? "EXPIRED" : "ACTIVE");
-        holder.statusTextView.setTextColor(context.getResources().getColor(
-            isExpired ? android.R.color.holo_red_dark : android.R.color.holo_green_dark));
-
+        holder.originalPriceTextView.setText("$" + offer.getOriginalPrice());
+        holder.discountedPriceTextView.setText("$" + offer.getDiscountedPrice());
+        
+        // Calculate discount percentage
+        double discountPercentage = ((offer.getOriginalPrice() - offer.getDiscountedPrice()) / offer.getOriginalPrice()) * 100;
+        holder.discountPercentageTextView.setText(String.format("%.0f%% OFF", discountPercentage));
+        
+        holder.expirationDateTextView.setText("Expires: " + offer.getExpirationDate());
+        holder.statusTextView.setText(offer.isActive() ? "Active" : "Inactive");
+        
         holder.deleteButton.setOnClickListener(v -> {
             if (deleteListener != null) {
-                deleteListener.onDelete(offer);
+                deleteListener.onOfferDelete(offer);
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return offerList != null ? offerList.size() : 0;
+        return offerList.size();
     }
 
-    public static class BusinessOfferViewHolder extends RecyclerView.ViewHolder {
+    public class BusinessOfferViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView, descriptionTextView, categoryTextView;
         TextView originalPriceTextView, discountedPriceTextView, discountPercentageTextView;
         TextView expirationDateTextView, statusTextView;
