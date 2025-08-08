@@ -35,24 +35,23 @@ jobs:
       - name: 📜 Accept licenses
         run: yes | sdkmanager --licenses
 
-      - name: 🧹 Clean project
-        run: ./gradlew clean --no-daemon
+      - name: 🧹 Clean project and clear caches
+        run: |
+          rm -rf .gradle/caches
+          rm -rf app/build
+          ./gradlew clean --no-daemon --refresh-dependencies
 
       - name: 🔨 Build Debug APK (Java only)
         run: |
-          echo "🚀 Building Debug APK (Java only, skipping Kotlin/DataBinding)..."
-          ./gradlew :app:compileDebugJavaWithJavac assembleDebug \
-            -x compileDebugKotlin \
-            -x dataBindingGenBaseClassesDebug \
+          echo "🚀 Building Debug APK (Java only)..."
+          ./gradlew clean assembleDebug \
             --no-daemon --stacktrace 2>&1 | tee build.log
         continue-on-error: true
 
       - name: 🔨 Build Release APK (Java only)
         run: |
-          echo "🚀 Building Release APK (Java only, skipping Kotlin/DataBinding)..."
-          ./gradlew :app:compileReleaseJavaWithJavac assembleRelease \
-            -x compileReleaseKotlin \
-            -x dataBindingGenBaseClassesRelease \
+          echo "🚀 Building Release APK (Java only)..."
+          ./gradlew assembleRelease \
             --no-daemon --stacktrace 2>&1 | tee -a build.log
         continue-on-error: true
 
