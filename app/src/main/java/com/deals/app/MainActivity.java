@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Offer> filteredOfferList;
     private SearchView searchView;
     private Spinner categorySpinner, citySpinner;
-    private Button debugCrashButton;
+    
     private FirebaseManager firebaseManager;
 
     private String[] categories = {"All", "Food", "Shopping", "Entertainment", "Health", "Beauty", "Travel", "Electronics"};
@@ -64,12 +64,8 @@ public class MainActivity extends AppCompatActivity {
         searchView = findViewById(R.id.searchView);
         categorySpinner = findViewById(R.id.categorySpinner);
         citySpinner = findViewById(R.id.citySpinner);
-        debugCrashButton = findViewById(R.id.debugCrashButton);
 
-        debugCrashButton.setOnClickListener(v -> {
-            FirebaseCrashlytics.getInstance().log("User triggered debug crash");
-            throw new RuntimeException("Test crash for debugging");
-        });
+        
     }
 
     private void setupRecyclerView() {
@@ -184,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_business_dashboard) {
+        if (id == R.id.action_logout) {
             startActivity(new Intent(this, BusinessDashboardActivity.class));
             return true;
         } else if (id == R.id.action_logout) {

@@ -25,6 +25,14 @@ public class Offer implements Parcelable {
         // Default constructor required for calls to DataSnapshot.getValue(Offer.class)
     }
 
+    public String getId() {
+        return offerId;
+    }
+
+    public void setId(String id) {
+        this.offerId = id;
+    }
+
     public Offer(String title, String description, String businessId, String businessName,
                  String category, String city, double originalPrice, double discountedPrice,
                  int discountPercentage, long expiryDate, String ownerId) {

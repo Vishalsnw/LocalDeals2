@@ -77,4 +77,18 @@ public class User {
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setBusinessOwner(boolean isBusinessOwner) {
+        // This method can be implemented based on your business logic
+        // For example, you might want to set the role field
+        if (isBusinessOwner) {
+            this.role = "business";
+        } else {
+            this.role = "customer";
+        }
+    }
 }

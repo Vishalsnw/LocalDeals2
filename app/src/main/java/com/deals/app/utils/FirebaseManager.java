@@ -111,3 +111,73 @@ public class FirebaseManager {
         return firestore;
     }
 }
+package com.deals.app.utils;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.auth.AuthResult;
+
+public class FirebaseManager {
+    private static FirebaseManager instance;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseFirestore firestore;
+
+    private FirebaseManager() {
+        firebaseAuth = FirebaseAuth.getInstance();
+        firestore = FirebaseFirestore.getInstance();
+    }
+
+    public static FirebaseManager getInstance() {
+        if (instance == null) {
+            instance = new FirebaseManager();
+        }
+        return instance;
+    }
+
+    public FirebaseAuth getAuth() {
+        return firebaseAuth;
+    }
+
+    public FirebaseFirestore getFirestore() {
+        return firestore;
+    }
+
+    public boolean isUserLoggedIn() {
+        return firebaseAuth.getCurrentUser() != null;
+    }
+
+    public FirebaseUser getCurrentUser() {
+        return firebaseAuth.getCurrentUser();
+    }
+
+    public void logout() {
+        firebaseAuth.signOut();
+    }
+
+    public interface AuthCallback {
+        void onResult(AuthResult authResult, Exception exception);
+    }
+
+    public void createUser(String email, String password, AuthCallback callback) {
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    callback.onResult(task.getResult(), null);
+                } else {
+                    callback.onResult(null, task.getException());
+                }
+            });
+    }
+
+    public void signInUser(String email, String password, AuthCallback callback) {
+        firebaseAuth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    callback.onResult(task.getResult(), null);
+                } else {
+                    callback.onResult(null, task.getException());
+                }
+            });
+    }
+}
